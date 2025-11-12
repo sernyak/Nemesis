@@ -7,8 +7,10 @@
 
     <!-- 1. Tailwind CSS для преміального дизайну -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- 2. Chart.js для графіків -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <!-- 3. PapaParse для надійного завантаження CSV з Google Sheets -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     
@@ -17,13 +19,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker@2.0.12/dist/css/litepicker.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker-module-ranges@1.0.0/dist/index.css"/>
 
-    <!-- 5. Завантаження скриптів Litepicker в <head> з 'defer' -->
-    <!-- Це гарантує, що вони завантажені та виконані перед DOMContentLoaded -->
-    <script src="https://cdn.jsdelivr.net/npm/litepicker@2.0.12/dist/litepicker.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/litepicker-module-ranges@1.0.0/dist/index.js" defer></script>
-
     <style>
-        /* * Старший Інженер: Вбудовані стилі для темної теми Litepicker
+        /* * Старший Інженер: Вбудовані стилі для темної теми Litepicker 
          * Гарантує, що календар та пресети відповідають темній темі дашборду.
          */
         .litepicker {
@@ -74,8 +71,7 @@
             background-color: #3b82f6 !important;
             color: #ffffff !important;
         }
-
-        /* --- UI/UX ОНОВЛЕННЯ: Стилі для панелі пресетів (Ranges) --- */
+        /* Стилі для панелі пресетів (Ranges) */
         /* Це забезпечує темну тему для самої панелі пресетів */
         .litepicker .container__ranges {
             background-color: #1f2937 !important; /* bg-gray-800 */
@@ -112,7 +108,9 @@
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 font-sans antialiased p-4 md:p-8">
+
     <div class="max-w-7xl mx-auto">
+
         <!-- Заголовок -->
         <header class="mb-6">
             <h1 class="text-3xl font-bold text-white">Аналітичний Дашборд: Втрати Засобів</h1>
@@ -121,12 +119,14 @@
 
         <!-- Панель Фільтрів -->
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-6">
+            
             <!-- Фільтр 1: Період часу -->
             <div>
                 <label for="datepicker" class="block text-sm font-medium text-gray-400 mb-1">Період часу</label>
                 <input id="datepicker" type="text" placeholder="Оберіть період..." readonly
                        class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
             </div>
+
             <!-- Фільтр 2: Тип засобу -->
             <div>
                 <label for="droneTypeFilter" class="block text-sm font-medium text-gray-400 mb-1">Тип засобу</label>
@@ -135,6 +135,7 @@
                     <option value="all">Всі типи засобів</option>
                 </select>
             </div>
+
             <!-- Фільтр 3: Тип місії -->
             <div>
                 <label for="missionTypeFilter" class="block text-sm font-medium text-gray-400 mb-1">Тип місії</label>
@@ -156,15 +157,18 @@
         <!-- Головна Візуалізація -->
         <div class="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg mb-6">
             <h2 class="text-xl font-semibold text-white mb-4">Втрати бортів протягом операційної доби</h2>
+            
             <!-- Індикатор завантаження -->
             <div id="loadingIndicator" class="text-center py-16">
                 <p class="text-lg text-gray-400">Завантаження даних...</p>
                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mt-4"></div>
             </div>
+
             <!-- Контейнер графіку -->
             <div id="chartContainer" class="hidden" style="height: 450px;">
                 <canvas id="hourlyLossChart"></canvas>
             </div>
+
             <!-- Повідомлення про відсутність даних -->
             <div id="noDataMessage" class="hidden text-center py-16">
                  <p class="text-lg text-gray-400">Немає даних для відображення за обраними фільтрами.</p>
@@ -173,6 +177,7 @@
 
         <!-- Кругові діаграми -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
             <!-- Діаграма "Тип засобу" -->
             <div class="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg">
                 <h2 class="text-xl font-semibold text-white mb-4">Тип засобу</h2>
@@ -181,6 +186,7 @@
                      <p id="noDataDronePie" class="hidden absolute inset-0 flex items-center justify-center text-gray-400">Немає даних</p>
                 </div>
             </div>
+
             <!-- Діаграма "Тип місії" -->
             <div class="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg">
                 <h2 class="text-xl font-semibold text-white mb-4">Тип місії</h2>
@@ -192,15 +198,21 @@
         </div>
     </div>
 
-    <!-- Завантажуємо JS-файли (Litepicker та його плагін) перед скриптом дашборду -->
-    <!-- СКРИПТИ ПЕРЕМІЩЕНО В <head> ДЛЯ ГАРАНТОВАНОГО ЗАВАНТАЖЕННЯ -->
+    <!-- 
+      ВИПРАВЛЕННЯ: Завантажуємо скрипти Litepicker тут (в кінці <body>).
+      Це гарантує, що вони завантажені ДО того, як почне 
+      виконуватися наша "Логіка дашборду".
+    -->
+    <script src="https://cdn.jsdelivr.net/npm/litepicker@2.0.12/dist/litepicker.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/litepicker-module-ranges@1.0.0/dist/index.js"></script>
     
     <!-- Логіка дашборду -->
     <script>
         // --- КОНФІГУРАЦІЯ ---
+        
         // Вимога: Джерело даних
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQddQv6nZ9Hjehjz614SAAOwBSidxnNZA-lOCmnXyIfuDlMNS-2bW005gdueo6PWCrO4uYZXXA_33CB/pub?gid=508097657&single=true&output=csv';
-
+        
         // Вимога: Пошук за назвами колонок
         const EXPECTED_COLUMNS = {
             DATE: 'flight_end_date',
@@ -208,10 +220,10 @@
             DRONE: 'drone_id',
             MISSION: 'mission_type',
         };
-
+        
         // Вимога: Логіка "Операційної доби"
         const OPERATIONAL_DAY_START_HOUR = 6; // Доба починається о 06:00
-
+        
         // Генеруємо мітки для осі X: [ "06:00", "07:00", ..., "23:00", "00:00", ..., "05:00" ]
         const operationalHours = Array.from({ length: 24 }, (_, i) => {
             const hour = (OPERATIONAL_DAY_START_HOUR + i) % 24;
@@ -219,7 +231,6 @@
         });
 
         // --- ДОДАНО: Кастомні палітри кольорів для кругових діаграм ---
-        // (На основі вашого прикладу)
         const PIE_COLORS_DRONE = [
             '#4F46E5', // Indigo
             '#10B981', // Emerald
@@ -242,13 +253,12 @@
             '#EF4444'  // Red
         ];
 
-
         // --- ГЛОБАЛЬНІ ЗМІННІ ---
         let originalData = []; // Сховище для всіх завантажених даних
         let filteredData = []; // Поточні відфільтровані дані
         let hourlyChart, dronePieChart, missionPieChart; // Об'єкти графіків
         let datePicker; // Об'єкт фільтру дат
-
+        
         // --- ІНІЦІАЛІЗАЦІЯ ---
         document.addEventListener('DOMContentLoaded', () => {
             initDatePicker();
@@ -267,7 +277,6 @@
                 complete: (results) => {
                     // Вимога: Нечутливий до регістру пошук колонок
                     const headers = results.meta.fields;
-                    
                     // Допоміжна функція для надійного пошуку назви колонки
                     const findHeader = (name) => {
                         const normalizedName = name.toLowerCase();
@@ -299,7 +308,7 @@
                         const timeStr = row[timeColName];
                         const dateObj = parseDate(dateStr);
                         const hour = parseTime(timeStr);
-
+                        
                         return {
                             date: dateObj,
                             hour: hour,
@@ -358,12 +367,13 @@
         function populateFilters() {
             const droneFilter = document.getElementById('droneTypeFilter');
             const missionFilter = document.getElementById('missionTypeFilter');
-
+            
             const droneTypes = [...new Set(originalData.map(d => d.droneType))].sort();
+            
             // Зі списку вибору повинні бути виключені "пусті" або нульові значення
             const missionTypes = [...new Set(originalData.map(d => d.missionType))]
                                  .filter(type => type && type !== "Не вказано").sort();
-            
+
             // Заповнюємо фільтри
             droneFilter.innerHTML = '<option value="all">Всі типи засобів</option>';
             droneTypes.forEach(type => {
@@ -375,8 +385,8 @@
                 missionFilter.add(new Option(type, type));
             });
         }
-        
-        // --- ОНОВЛЕННЯ: Фільтр "Період часу" з 8 пресетами ---
+
+        // Фільтр "Період часу" з 8 пресетами
         function initDatePicker() {
             const today = new Date();
             
@@ -387,7 +397,6 @@
                 const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday as start (1)
                 return new Date(d.setDate(diff));
             };
-            
             const getStartOfQuarter = (date) => {
                 const d = new Date(date);
                 const quarter = Math.floor((d.getMonth() + 3) / 3);
@@ -398,13 +407,10 @@
                 element: document.getElementById('datepicker'),
                 singleMode: false,
                 allowRepick: true,
-                
-                // --- ДОДАНО: Конфігурація пресетів ---
                 plugins: ['ranges'], // КРИТИЧНО: Вмикає панель пресетів (Ranges)
                 ranges: {
                     position: 'left', // Розташування пресетів
                     customRanges: {
-                        // Додаємо 8 пресетів згідно з вашим запитом
                         'Поточний тиждень': [getStartOfWeek(today), new Date(new Date(getStartOfWeek(today)).setDate(getStartOfWeek(today).getDate() + 6))],
                         'Поточний місяць': [new Date(today.getFullYear(), today.getMonth(), 1), new Date(today.getFullYear(), today.getMonth() + 1, 0)],
                         'Поточний квартал': [getStartOfQuarter(today), new Date(new Date(getStartOfQuarter(today)).setMonth(getStartOfQuarter(today).getMonth() + 3), 0)],
@@ -415,8 +421,6 @@
                         'Останні 365 днів': [new Date(new Date().setDate(today.getDate() - 364)), today],
                     }
                 },
-                // --- Кінець доданого блоку ---
-                
                 format: 'DD.MM.YYYY',
                 delimiter: ' - ',
                 setup: (picker) => {
@@ -426,21 +430,22 @@
                     });
                 }
             });
-
-            // Встановлюємо дефолтний період - "Останні 30 днів"
-            // Це покращує UX, оскільки користувач одразу бачить дані
-            const thirtyDaysAgo = new Date(new Date().setDate(today.getDate() - 29));
-            datePicker.setDateRange(thirtyDaysAgo, today);
+            
+            // --- ОНОВЛЕНО: Встановлюємо дефолтний період ---
+            // "Поточний рік" (з 1 січня по сьогодні)
+            const startOfYear = new Date(today.getFullYear(), 0, 1); // 0 = Січень, 1 = 1-й день
+            datePicker.setDateRange(startOfYear, today);
         }
 
         // --- 4. ІНІЦІАЛІЗАЦІЯ ГРАФІКІВ ---
+
         function initChart() {
             // --- Стовпчаста діаграма (Операційна доба) ---
             const ctxHourly = document.getElementById('hourlyLossChart').getContext('2d');
             const gradient = ctxHourly.createLinearGradient(0, 0, 0, 450);
             gradient.addColorStop(0, 'rgba(59, 130, 246, 0.7)');
             gradient.addColorStop(1, 'rgba(59, 130, 246, 0.1)');
-
+            
             hourlyChart = new Chart(ctxHourly, {
                 type: 'bar',
                 data: {
@@ -459,13 +464,13 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: {
+                        y: { 
                              beginAtZero: true,
                              title: { display: true, text: 'Кількість втрат', color: '#9ca3af' },
                              ticks: { color: '#9ca3af', precision: 0 },
                              grid: { color: 'rgba(255, 255, 255, 0.1)' }
                          },
-                        x: {
+                        x: { 
                              title: { display: true, text: 'Година доби (Операційна доба)', color: '#9ca3af' },
                              ticks: { color: '#9ca3af' },
                              grid: { display: false }
@@ -510,31 +515,20 @@
                     }
                 }
             };
-
-            // --- ВИПРАВЛЕННЯ: Створюємо єдиний об'єкт стилів для діаграм ---
-            const pieDatasetOptions = {
-                data: [],
-                borderWidth: 2,
-                borderColor: '#1f2937', // bg-gray-800 (для ефекту відступів)
-                // Ми не вказуємо backgroundColor, дозволяючи Chart.js
-                // автоматично застосувати свою палітру кольорів.
-            };
-
+            
             // Діаграма "Тип засобу"
             const ctxDrone = document.getElementById('dronePieChart').getContext('2d');
             dronePieChart = new Chart(ctxDrone, {
                 type: 'doughnut',
-                // Використовуємо копію об'єкта стилів
-                data: { labels: [], datasets: [JSON.parse(JSON.stringify(pieDatasetOptions))] },
+                data: { labels: [], datasets: [{ data: [], borderWidth: 2, borderColor: '#1f2937' }] },
                 options: pieOptions
             });
-
+            
             // Діаграма "Тип місії"
             const ctxMission = document.getElementById('missionPieChart').getContext('2d');
             missionPieChart = new Chart(ctxMission, {
                 type: 'doughnut',
-                // Використовуємо копію об'єкта стилів
-                data: { labels: [], datasets: [JSON.parse(JSON.stringify(pieDatasetOptions))] },
+                data: { labels: [], datasets: [{ data: [], borderWidth: 2, borderColor: '#1f2937' }] },
                 options: pieOptions
             });
         }
@@ -544,7 +538,7 @@
         // Ця функція викликається при будь-якій зміні фільтрів
         function updateDashboard() {
             if (!originalData.length) return; // Захист, якщо дані ще не завантажені
-            
+
             // --- 5.1. Отримуємо значення фільтрів ---
             const startDate = datePicker.getStartDate();
             const endDate = datePicker.getEndDate();
@@ -562,14 +556,14 @@
                     const end = new Date(endDate.getTime()); end.setHours(23, 59, 59, 999); // Включаємо кінець дня
                     dateMatch = rowDate >= start && rowDate <= end;
                 }
-
+                
                 // 2, 3. Фільтрація по випадаючим спискам
                 const droneMatch = (selectedDroneType === 'all') || (row.droneType === selectedDroneType);
                 const missionMatch = (selectedMissionType === 'all') || (row.missionType === selectedMissionType);
-
+                
                 return dateMatch && droneMatch && missionMatch;
             });
-
+            
             let totalLosses = filteredData.length;
 
             // --- 5.3. Оновлюємо KPI ---
@@ -582,7 +576,7 @@
                     hourlyCounts[row.hour]++;
                 }
             });
-
+            
             // Перетворюємо календарну добу на операційну (06:00 - 05:00)
             const operationalHourlyData = [];
             for (let i = 0; i < 24; i++) {
@@ -592,7 +586,7 @@
 
             hourlyChart.data.datasets[0].data = operationalHourlyData;
             hourlyChart.update();
-
+            
             // Показываємо або ховаємо повідомлення "Немає даних"
             if (totalLosses === 0) {
                 document.getElementById('chartContainer').classList.add('hidden');
@@ -607,7 +601,7 @@
             updatePieChart(dronePieChart, filteredData, 'droneType', 'noDataDronePie', PIE_COLORS_DRONE);
             updatePieChart(missionPieChart, filteredData, 'missionType', 'noDataMissionPie', PIE_COLORS_MISSION);
         }
-
+        
         // Допоміжна функція для оновлення кругових діаграм
         // --- ОНОВЛЕНО: Функція тепер приймає масив кольорів ---
         function updatePieChart(chartInstance, data, propertyName, noDataElementId, colorPalette) {
@@ -622,26 +616,26 @@
                     total++;
                 }
             });
-
+            
             // Сортуємо для кращої візуалізації (від більшого до меншого)
             const sortedEntries = Object.entries(counts).sort(([,a],[,b]) => b-a);
-
+            
             const labels = sortedEntries.map(entry => entry[0]);
             const chartData = sortedEntries.map(entry => entry[1]);
 
             chartInstance.data.labels = labels;
 
-            // --- ВИПРАВЛЕННЯ (Спроба №4 - На основі вашого прикладу) ---
+            // --- ВИПРАВЛЕННЯ: Використовуємо pop/push та явно задаємо кольори ---
             // Повністю видаляємо старий набір даних (dataset)
             chartInstance.data.datasets.pop();
             
             // Додаємо новий, "чистий" набір даних,
-            // АЛЕ ТЕПЕР ЯВНО ВКАЗУЄМО 'backgroundColor'
+            // з явно вказаною палітрою кольорів.
             chartInstance.data.datasets.push({
                 data: chartData,
                 borderWidth: 2,
                 borderColor: '#1f2937', // bg-gray-800
-                backgroundColor: colorPalette // <-- ОСЬ КЛЮЧОВЕ ВИПРАВЛЕННЯ
+                backgroundColor: colorPalette // <-- Явно задаємо палітру
             });
             
             chartInstance.update();
@@ -658,6 +652,8 @@
         Chart.prototype.getDataTotal = function() {
             return this.data.datasets[0].data.reduce((acc, value) => acc + value, 0);
         };
+        
     </script>
+
 </body>
 </html>
