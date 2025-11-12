@@ -1,1 +1,200 @@
-<!DOCTYPE html><html lang="uk"><head>    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Аналіз Втрат Засобів</title>    <!-- 1. Tailwind CSS для преміального дизайну -->    <script src="https://cdn.tailwindcss.com"></script>    <!-- 2. Chart.js для графіків -->    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>    <!-- 3. PapaParse для надійного завантаження CSV з Google Sheets -->    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>    <!-- 4. Litepicker: CSS (залишаємо в head) -->    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker@2.0.12/dist/css/litepicker.css"/>    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker-module-ranges@1.0.0/dist/index.css"/>    <style>        /* * Старший Інженер: Вбудовані стилі для темної теми Litepicker         * Гарантує, що календар та пресети відповідають темній темі дашборду.         */        .litepicker {            background-color: #1f2937 !important; /* bg-gray-800 */            color: #d1d5db !important; /* text-gray-300 */            border: 1px solid #374151 !important; /* border-gray-700 */            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;        }        .litepicker .container__months .month-item-header {            background-color: #374151 !important;            color: #f3f4f6 !important; /* text-gray-100 */        }        .litepicker .container__months .month-item-dayname {            color: #9ca3af !important; /* text-gray-400 */        }        .litepicker .container__months .month-item-day {            color: #d1d5db !important;        }        .litepicker .container__months .month-item-day:hover {            background-color: #374151 !important; /* bg-gray-700 */        }        .litepicker .container__months .month-item-day.is-start-date,        .litepicker .container__months .month-item-day.is-end-date {            background-color: #3b82f6 !important; /* bg-blue-500 */            color: #ffffff !important;        }        .litepicker .container__months .month-item-day.is-in-range {            background-color: #2563eb !important; /* bg-blue-600 */            color: #ffffff !important;        }        .litepicker .container__months .month-item-day.is-disabled {            color: #4b5563 !important; /* text-gray-600 */        }        .litepicker .button-previous-month,        .litepicker .button-next-month {            color: #9ca3af !important;        }        .litepicker .container__footer {            background-color: #1f2937 !important;            border-top: 1px solid #374151 !important;        }        .litepicker .litepicker__button-apply,        .litepicker .litepicker__button-cancel {            background-color: #374151 !important;            color: #d1d5db !important;        }        .litepicker .litepicker__button-apply {            background-color: #3b82f6 !important;            color: #ffffff !important;        }        /* Стилі для панелі пресетів (Ranges) */        /* Це забезпечує темну тему для самої панелі пресетів */        .litepicker .container__ranges {            background-color: #1f2937 !important; /* bg-gray-800 */            border-right: 1px solid #374151 !important;        }        .litepicker .container__ranges ul li {            color: #d1d5db !important; /* text-gray-300 */        }        .litepicker .container__ranges ul li:hover {            background-color: #374151 !important; /* bg-gray-700 */        }        .litepicker .container__ranges ul li.active {            background-color: #3b82f6 !important; /* bg-blue-500 */            color: #ffffff !important;        }        /* Кастомний скролбар для випадаючих списків */        select {            scrollbar-width: thin;            scrollbar-color: #4b5563 #1f2937;        }        select::-webkit-scrollbar {            width: 8px;        }        select::-webkit-scrollbar-track {            background: #1f2937;            border-radius: 10px;        }        select::-webkit-scrollbar-thumb {            background-color: #4b5563;            border-radius: 10px;            border: 2px solid #1f2937;        }    </style></head><body class="bg-gray-900 text-gray-200 font-sans antialiased p-4 md:p-8">    <div class="max-w-7xl mx-auto">        <!-- Заголовок -->        <header class="mb-6">            <h1 class="text-3xl font-bold text-white">Аналітичний Дашборд: Втрати Засобів</h1>            <p class="text-gray-400">Аналіз втрат в розрізі години доби, типу засобу та типу місії.</p>        </header>        <!-- Панель Фільтрів -->        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-6">            <!-- Фільтр 1: Період часу -->            <div>                <label for="datepicker" class="block text-sm font-medium text-gray-400 mb-1">Період часу</label>                <input id="datepicker" type="text" placeholder="Оберіть період..." readonly                       class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">            </div>            <!-- Фільтр 2: Тип засобу -->            <div>                <label for="droneTypeFilter" class="block text-sm font-medium text-gray-400 mb-1">Тип засобу</label>                <select id="droneTypeFilter"                        class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none">                    <option value="all">Всі типи засобів</option>                </select>            </div>            <!-- Фільтр 3: Тип місії -->            <div>                <label for="missionTypeFilter" class="block text-sm font-medium text-gray-400 mb-1">Тип місії</label>                <select id="missionTypeFilter"                        class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none">                    <option value="all">Всі типи місій</option>                </select>            </div>        </div>        <!-- KPI-картка -->        <div class="mb-6">             <div class="bg-gray-800 p-4 rounded-lg shadow-lg">                <h3 class="text-sm font-medium text-gray-400 uppercase">Загальна кількість втрат (за обраний період)</h3>                <p id="totalLossesKPI" class="text-4xl font-bold text-white mt-1">...</p>            </div>        </div>        <!-- Головна Візуалізація -->        <div class="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg mb-6">            <h2 class="text-xl font-semibold text-white mb-4">Втрати бортів протягом операційної доби</h2>            <!-- Індикатор завантаження -->            <div id="loadingIndicator" class="text-center py-16">                <p class="text-lg text-gray-400">Завантаження даних...</p>                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mt-4"></div>            </div>            <!-- Контейнер графіку -->            <div id="chartContainer" class="hidden" style="height: 450px;">                <canvas id="hourlyLossChart"></canvas>            </div>            <!-- Повідомлення про відсутність даних -->            <div id="noDataMessage" class="hidden text-center py-16">                 <p class="text-lg text-gray-400">Немає даних для відображення за обраними фільтрами.</p>            </div>        </div>        <!-- Кругові діаграми -->        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">            <!-- Діаграма "Тип засобу" -->            <div class="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg">                <h2 class="text-xl font-semibold text-white mb-4">Тип засобу</h2>                <div class="h-64 md:h-80 relative">                     <canvas id="dronePieChart"></canvas>                     <p id="noDataDronePie" class="hidden absolute inset-0 flex items-center justify-center text-gray-400">Немає даних</p>                </div>            </div>            <!-- Діаграма "Тип місії" -->            <div class="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg">                <h2 class="text-xl font-semibold text-white mb-4">Тип місії</h2>                <div class="h-64 md:h-80 relative">                    <canvas id="missionPieChart"></canvas>                    <p id="noDataMissionPie" class="hidden absolute inset-0 flex items-center justify-center text-gray-400">Немає даних</p>                </div>            </div>        </div>    </div>    <!-- Завантажуємо JS-файли (Litepicker та його плагін) перед скриптом дашборду -->    <!-- Це критично важливо для правильної ініціалізації! -->    <script src="https://cdn.jsdelivr.net/npm/litepicker@2.0.12/dist/litepicker.js"></script>    <script src="https://cdn.jsdelivr.net/npm/litepicker-module-ranges@1.0.0/dist/index.js"></script>    <!-- Логіка дашборду -->    <script>        // --- КОНФІГУРАЦІЯ ---        // Вимога: Джерело даних        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQddQv6nZ9Hjehjz614SAAOwBSidxnNZA-lOCmnXyIfuDlMNS-2bW005gdueo6PWCrO4uYZXXA_33CB/pub?gid=508097657&single=true&output=csv';        // Вимога: Пошук за назвами колонок        const EXPECTED_COLUMNS = {            DATE: 'flight_end_date',            TIME: 'flight_end_time',            DRONE: 'drone_id',            MISSION: 'mission_type',        };        // Вимога: Логіка "Операційної доби"        const OPERATIONAL_DAY_START_HOUR = 6; // Доба починається о 06:00        // Генеруємо мітки для осі X: [ "06:00", "07:00", ..., "23:00", "00:00", ..., "05:00" ]        const operationalHours = Array.from({ length: 24 }, (_, i) => {            const hour = (OPERATIONAL_DAY_START_HOUR + i) % 24;            return hour.toString().padStart(2, '0') + ':00';        });        // --- ГЛОБАЛЬНІ ЗМІННІ ---        let originalData = []; // Сховище для всіх завантажених даних        let filteredData = []; // Поточні відфільтровані дані        let hourlyChart, dronePieChart, missionPieChart; // Об'єкти графіків        let datePicker; // Об'єкт фільтру дат        // --- ІНІЦІАЛІЗАЦІЯ ---        document.addEventListener('DOMContentLoaded', () => {            initDatePicker();            loadData();            // Прив'язка фільтрів до функції оновлення            document.getElementById('droneTypeFilter').addEventListener('change', updateDashboard);            document.getElementById('missionTypeFilter').addEventListener('change', updateDashboard);        });        // --- 1. ЗАВАНТАЖЕННЯ ДАНИХ (Senior Full-Stack Logic) ---        function loadData() {            Papa.parse(CSV_URL, {                download: true,                header: true,                skipEmptyLines: true,                complete: (results) => {                    // Вимога: Нечутливий до регістру пошук колонок                    const headers = results.meta.fields;                    // Допоміжна функція для надійного пошуку назви колонки                    const findHeader = (name) => {                        const normalizedName = name.toLowerCase();                        // .find() поверне першу назву, що збігається                        return headers.find(h => h.trim().toLowerCase() === normalizedName);                    };                    const dateColName = findHeader(EXPECTED_COLUMNS.DATE);                    const timeColName = findHeader(EXPECTED_COLUMNS.TIME);                    const droneColName = findHeader(EXPECTED_COLUMNS.DRONE);                    const missionColName = findHeader(EXPECTED_COLUMNS.MISSION);                    // Надійна перевірка наявності всіх колонок                    if (!dateColName || !timeColName || !droneColName || !missionColName) {                        let missingCols = [];                        if (!dateColName) missingCols.push(EXPECTED_COLUMNS.DATE);                        if (!timeColName) missingCols.push(EXPECTED_COLUMNS.TIME);                        if (!droneColName) missingCols.push(EXPECTED_COLUMNS.DRONE);                        if (!missionColName) missingCols.push(EXPECTED_COLUMNS.MISSION);                        console.error("Критична помилка: Не вдалося знайти колонки:", missingCols.join(', '));                        document.getElementById('loadingIndicator').innerText = `Помилка: Не знайдено колонки: ${missingCols.join(', ')}. Перевірте заголовки у CSV.`;                        return;                    }                    // Обробляємо дані, використовуючи ЗНАЙДЕНІ назви колонок                    originalData = results.data.map(row => {                        const dateStr = row[dateColName];                        const timeStr = row[timeColName];                        const dateObj = parseDate(dateStr);                        const hour = parseTime(timeStr);                        return {                            date: dateObj,                            hour: hour,                            // Вимога: Очистка (.trim()) та обробка "Не вказано"                            droneType: (row[droneColName] || "Не вказано").trim(),                            missionType: (row[missionColName] || "Не вказано").trim(),                        };                    }).filter(row => row.date && row.hour !== null); // Фільтруємо невалідні записи                    filteredData = [...originalData];                    populateFilters(); // Заповнюємо фільтри унікальними значеннями                    initChart(); // Ініціалізуємо графіки                    // Показываємо дашборд                    document.getElementById('loadingIndicator').classList.add('hidden');                    document.getElementById('chartContainer').classList.remove('hidden');                    updateDashboard(); // Перший запуск для відображення даних                },                error: (error) => {                    console.error("Помилка завантаження CSV:", error);                    document.getElementById('loadingIndicator').innerText = "Помилка завантаження даних.";                }            });        }        // --- 2. ПАРСИНГ ДАТИ І ЧАСУ ---        // Надійний парсинг дати (MM/DD/YYYY)        function parseDate(dateStr) {            if (!dateStr) return null;            const parts = dateStr.split('/');            if (parts.length === 3) {                // MM/DD/YYYY                return new Date(parts[2], parts[0] - 1, parts[1]);            }            // Спроба парсити як стандартний формат, якщо MM/DD/YYYY не вдалося            const date = new Date(dateStr);            return isNaN(date.getTime()) ? null : date;        }        // Надійний парсинг години        function parseTime(timeStr) {            if (!timeStr) return null;            const parts = timeStr.split(':');            if (parts.length >= 2) {                const hour = parseInt(parts[0], 10);                return isNaN(hour) ? null : hour;            }            return null;        }        // --- 3. ІНІЦІАЛІЗАЦІЯ ФІЛЬТРІВ ---        function populateFilters() {            const droneFilter = document.getElementById('droneTypeFilter');            const missionFilter = document.getElementById('missionTypeFilter');            const droneTypes = [...new Set(originalData.map(d => d.droneType))].sort();            // Зі списку вибору повинні бути виключені "пусті" або нульові значення            const missionTypes = [...new Set(originalData.map(d => d.missionType))]                                 .filter(type => type && type !== "Не вказано").sort();            // Заповнюємо фільтри            droneFilter.innerHTML = '<option value="all">Всі типи засобів</option>';            droneTypes.forEach(type => {                droneFilter.add(new Option(type, type));            });            missionFilter.innerHTML = '<option value="all">Всі типи місій</option>';            missionTypes.forEach(type => {                missionFilter.add(new Option(type, type));            });        }        // Фільтр "Період часу" з 8 пресетами        function initDatePicker() {            const today = new Date();            // Допоміжні функції для пресетів            const getStartOfWeek = (date) => {                const d = new Date(date);                const day = d.getDay();                const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday as start (1)                return new Date(d.setDate(diff));            };            const getStartOfQuarter = (date) => {                const d = new Date(date);                const quarter = Math.floor((d.getMonth() + 3) / 3);                return new Date(d.getFullYear(), (quarter - 1) * 3, 1);            };            datePicker = new Litepicker({                element: document.getElementById('datepicker'),                singleMode: false,                allowRepick: true,                plugins: ['ranges'], // КРИТИЧНО: Вмикає панель пресетів (Ranges)                ranges: {                    position: 'left', // Розташування пресетів                    customRanges: {                        'Поточний тиждень': [getStartOfWeek(today), new Date(new Date(getStartOfWeek(today)).setDate(getStartOfWeek(today).getDate() + 6))],                        'Поточний місяць': [new Date(today.getFullYear(), today.getMonth(), 1), new Date(today.getFullYear(), today.getMonth() + 1, 0)],                        'Поточний квартал': [getStartOfQuarter(today), new Date(new Date(getStartOfQuarter(today)).setMonth(getStartOfQuarter(today).getMonth() + 3), 0)],                        'Поточний рік': [new Date(today.getFullYear(), 0, 1), new Date(today.getFullYear(), 11, 31)],                        'Останні 7 днів': [new Date(new Date().setDate(today.getDate() - 6)), today],                        'Останні 30 днів': [new Date(new Date().setDate(today.getDate() - 29)), today],                        'Останні 90 днів': [new Date(new Date().setDate(today.getDate() - 89)), today],                        'Останні 365 днів': [new Date(new Date().setDate(today.getDate() - 364)), today],                    }                },                format: 'DD.MM.YYYY',                delimiter: ' - ',                setup: (picker) => {                    // Оновлюємо дашборд при будь-якій зміні дати                    picker.on('selected', (date1, date2) => {                        updateDashboard();                    });                }            });            // Встановлюємо дефолтний період - "Останні 30 днів"            const thirtyDaysAgo = new Date(new Date().setDate(today.getDate() - 29));            datePicker.setDateRange(thirtyDaysAgo, today);        }        // --- 4. ІНІЦІАЛІЗАЦІЯ ГРАФІКІВ ---        function initChart() {            // --- Стовпчаста діаграма (Операційна доба) ---            const ctxHourly = document.getElementById('hourlyLossChart').getContext('2d');            const gradient = ctxHourly.createLinearGradient(0, 0, 0, 450);            gradient.addColorStop(0, 'rgba(59, 130, 246, 0.7)');            gradient.addColorStop(1, 'rgba(59, 130, 246, 0.1)');            hourlyChart = new Chart(ctxHourly, {                type: 'bar',                data: {                    labels: operationalHours, // Використовуємо мітки 06:00 - 05:00                    datasets: [{                        label: 'Кількість втрат',                        data: Array(24).fill(0),                        backgroundColor: gradient,                        borderColor: 'rgba(59, 130, 246, 1)',                        borderWidth: 1,                        borderRadius: 4,                        hoverBackgroundColor: 'rgba(59, 130, 246, 0.9)'                    }]                },                options: {                    responsive: true,                    maintainAspectRatio: false,                    scales: {                        y: {                             beginAtZero: true,                             title: { display: true, text: 'Кількість втрат', color: '#9ca3af' },                             ticks: { color: '#9ca3af', precision: 0 },                             grid: { color: 'rgba(255, 255, 255, 0.1)' }                         },                        x: {                             title: { display: true, text: 'Година доби (Операційна доба)', color: '#9ca3af' },                             ticks: { color: '#9ca3af' },                             grid: { display: false }                         }                    },                    plugins: {                        legend: { display: false },                        tooltip: {                             backgroundColor: '#111827', titleColor: '#f3f4f6', bodyColor: '#d1d5db', borderColor: '#374151', borderWidth: 1,                            callbacks: {                                title: (context) => `Година: ${context[0].label}`,                                label: (context) => `Кількість втрат: ${context.raw}`                            }                        }                    },                    interaction: { mode: 'index', intersect: false },                }            });            // --- Кругові діаграми ---            const pieOptions = {                responsive: true,                maintainAspectRatio: false,                cutout: '50%', // "Пончик"                plugins: {                    legend: {                        position: 'bottom',                        labels: { color: '#d1d5db', boxWidth: 12, padding: 15 }                    },                    tooltip: {                        backgroundColor: '#111827', titleColor: '#f3f4f6', bodyColor: '#d1d5db', borderColor: '#374151', borderWidth: 1,                        callbacks: {                            // Покращений тултіп: показує %                            label: (context) => {                                const label = context.label || '';                                const value = context.raw || 0;                                const total = context.chart.getDataTotal();                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';                                return `${label}: ${value} (${percentage})`;                            }                        }                    }                }            };            // Діаграма "Тип засобу"            const ctxDrone = document.getElementById('dronePieChart').getContext('2d');            dronePieChart = new Chart(ctxDrone, {                type: 'doughnut',                data: { labels: [], datasets: [{ data: [], borderWidth: 2 }] },                options: pieOptions            });            // Діаграма "Тип місії"            const ctxMission = document.getElementById('missionPieChart').getContext('2d');            missionPieChart = new Chart(ctxMission, {                type: 'doughnut',                data: { labels: [], datasets: [{ data: [], borderWidth: 2 }] },                options: pieOptions            });        }        // --- 5. ЛОГІКА ОНОВЛЕННЯ ДАШБОРДУ (Core Logic) ---        // Ця функція викликається при будь-якій зміні фільтрів        function updateDashboard() {            if (!originalData.length) return; // Захист, якщо дані ще не завантажені            // --- 5.1. Отримуємо значення фільтрів ---            const startDate = datePicker.getStartDate();            const endDate = datePicker.getEndDate();            const selectedDroneType = document.getElementById('droneTypeFilter').value;            const selectedMissionType = document.getElementById('missionTypeFilter').value;            // --- 5.2. Фільтруємо дані ---            filteredData = originalData.filter(row => {                const rowDate = row.date;                // 1. Фільтрація по даті                let dateMatch = true;                if (startDate && endDate) {                    const start = new Date(startDate.getTime()); start.setHours(0, 0, 0, 0);                    const end = new Date(endDate.getTime()); end.setHours(23, 59, 59, 999); // Включаємо кінець дня                    dateMatch = rowDate >= start && rowDate <= end;                }                // 2, 3. Фільтрація по випадаючим спискам                const droneMatch = (selectedDroneType === 'all') || (row.droneType === selectedDroneType);                const missionMatch = (selectedMissionType === 'all') || (row.missionType === selectedMissionType);                return dateMatch && droneMatch && missionMatch;            });            let totalLosses = filteredData.length;            // --- 5.3. Оновлюємо KPI ---            document.getElementById('totalLossesKPI').innerText = totalLosses;            // --- 5.4. Оновлюємо Стовпчасту діаграму ---            const hourlyCounts = Array(24).fill(0); // [ 0 (00:00), 1 (01:00), ..., 23 (23:00) ]            filteredData.forEach(row => {                if (row.hour >= 0 && row.hour <= 23) {                    hourlyCounts[row.hour]++;                }            });            // Перетворюємо календарну добу на операційну (06:00 - 05:00)            const operationalHourlyData = [];            for (let i = 0; i < 24; i++) {                const hourIndex = (OPERATIONAL_DAY_START_HOUR + i) % 24;                operationalHourlyData.push(hourlyCounts[hourIndex]);            }            hourlyChart.data.datasets[0].data = operationalHourlyData;            hourlyChart.update();            // Показываємо або ховаємо повідомлення "Немає даних"            if (totalLosses === 0) {                document.getElementById('chartContainer').classList.add('hidden');                document.getElementById('noDataMessage').classList.remove('hidden');            } else {                document.getElementById('chartContainer').classList.remove('hidden');                document.getElementById('noDataMessage').classList.add('hidden');            }            // --- 5.5. Оновлюємо Кругові діаграми ---            updatePieChart(dronePieChart, filteredData, 'droneType', 'noDataDronePie');            updatePieChart(missionPieChart, filteredData, 'missionType', 'noDataMissionPie');        }        // Допоміжна функція для оновлення кругових діаграм        function updatePieChart(chartInstance, data, propertyName, noDataElementId) {            const counts = {};            let total = 0;            data.forEach(row => {                const key = row[propertyName];                // Враховуємо тільки ті, що не "Не вказано"                if (key && key !== "Не вказано") {                    counts[key] = (counts[key] || 0) + 1;                    total++;                }            });            // Сортуємо для кращої візуалізації (від більшого до меншого)            const sortedEntries = Object.entries(counts).sort(([,a],[,b]) => b-a);            const labels = sortedEntries.map(entry => entry[0]);            const chartData = sortedEntries.map(entry => entry[1]);            chartInstance.data.labels = labels;            chartInstance.data.datasets[0].data = chartData;            // Цей рядок змушує Chart.js регенерувати палітру кольорів за замовчуванням            chartInstance.data.datasets[0].backgroundColor = undefined;            // Також оновимо колір рамки відповідно до темної теми            chartInstance.data.datasets[0].borderColor = '#1f2937'; // bg-gray-800            chartInstance.update();            // Обробка повідомлення "Немає даних"            if (total === 0) {                document.getElementById(noDataElementId).classList.remove('hidden');            } else {                document.getElementById(noDataElementId).classList.add('hidden');            }        }        // Допоміжна функція для Chart.js (потрібна для тултіпа з %)        Chart.prototype.getDataTotal = function() {            return this.data.datasets[0].data.reduce((acc, value) => acc + value, 0);        };    </script></body></html>
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аналіз Втрат Засобів</title>
+
+    <!-- 1. Tailwind CSS для преміального дизайну -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. Chart.js для графіків -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 3. PapaParse для надійного завантаження CSV з Google Sheets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    
+    <!-- 4. Litepicker: CSS (залишаємо в head) -->
+    <!-- Включає CSS для самого Litepicker та для плагіну "Ranges" -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker@2.0.12/dist/css/litepicker.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker-module-ranges@1.0.0/dist/index.css"/>
+
+    <!-- 5. Завантаження скриптів Litepicker в <head> з 'defer' -->
+    <!-- Це гарантує, що вони завантажені та виконані перед DOMContentLoaded -->
+    <script src="https://cdn.jsdelivr.net/npm/litepicker@2.0.12/dist/litepicker.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/litepicker-module-ranges@1.0.0/dist/index.js" defer></script>
+
+    <style>
+        /* * Старший Інженер: Вбудовані стилі для темної теми Litepicker
+         * Гарантує, що календар та пресети відповідають темній темі дашборду.
+         */
+        .litepicker {
+            background-color: #1f2937 !important; /* bg-gray-800 */
+            color: #d1d5db !important; /* text-gray-300 */
+            border: 1px solid #374151 !important; /* border-gray-700 */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+        }
+        .litepicker .container__months .month-item-header {
+            background-color: #374151 !important;
+            color: #f3f4f6 !important; /* text-gray-100 */
+        }
+        .litepicker .container__months .month-item-dayname {
+            color: #9ca3af !important; /* text-gray-400 */
+        }
+        .litepicker .container__months .month-item-day {
+            color: #d1d5db !important;
+        }
+        .litepicker .container__months .month-item-day:hover {
+            background-color: #374151 !important; /* bg-gray-700 */
+        }
+        .litepicker .container__months .month-item-day.is-start-date,
+        .litepicker .container__months .month-item-day.is-end-date {
+            background-color: #3b82f6 !important; /* bg-blue-500 */
+            color: #ffffff !important;
+        }
+        .litepicker .container__months .month-item-day.is-in-range {
+            background-color: #2563eb !important; /* bg-blue-600 */
+            color: #ffffff !important;
+        }
+        .litepicker .container__months .month-item-day.is-disabled {
+            color: #4b5563 !important; /* text-gray-600 */
+        }
+        .litepicker .button-previous-month,
+        .litepicker .button-next-month {
+            color: #9ca3af !important;
+        }
+        .litepicker .container__footer {
+            background-color: #1f2937 !important;
+            border-top: 1px solid #374151 !important;
+        }
+        .litepicker .litepicker__button-apply,
+        .litepicker .litepicker__button-cancel {
+            background-color: #374151 !important;
+            color: #d1d5db !important;
+        }
+        .litepicker .litepicker__button-apply {
+            background-color: #3b82f6 !important;
+            color: #ffffff !important;
+        }
+
+        /* --- UI/UX ОНОВЛЕННЯ: Стилі для панелі пресетів (Ranges) --- */
+        /* Це забезпечує темну тему для самої панелі пресетів */
+        .litepicker .container__ranges {
+            background-color: #1f2937 !important; /* bg-gray-800 */
+            border-right: 1px solid #374151 !important;
+        }
+        .litepicker .container__ranges ul li {
+            color: #d1d5db !important; /* text-gray-300 */
+        }
+        .litepicker .container__ranges ul li:hover {
+            background-color: #374151 !important; /* bg-gray-700 */
+        }
+        .litepicker .container__ranges ul li.active {
+            background-color: #3b82f6 !important; /* bg-blue-500 */
+            color: #ffffff !important;
+        }
+
+        /* Кастомний скролбар для випадаючих списків */
+        select {
+            scrollbar-width: thin;
+            scrollbar-color: #4b5563 #1f2937;
+        }
+        select::-webkit-scrollbar {
+            width: 8px;
+        }
+        select::-webkit-scrollbar-track {
+            background: #1f2937;
+            border-radius: 10px;
+        }
+        select::-webkit-scrollbar-thumb {
+            background-color: #4b5563;
+            border-radius: 10px;
+            border: 2px solid #1f2937;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 font-sans antialiased p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Заголовок -->
+        <header class="mb-6">
+            <h1 class="text-3xl font-bold text-white">Аналітичний Дашборд: Втрати Засобів</h1>
+            <p class="text-gray-400">Аналіз втрат в розрізі години доби, типу засобу та типу місії.</p>
+        </header>
+
+        <!-- Панель Фільтрів -->
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-6">
+            <!-- Фільтр 1: Період часу -->
+            <div>
+                <label for="datepicker" class="block text-sm font-medium text-gray-400 mb-1">Період часу</label>
+                <input id="datepicker" type="text" placeholder="Оберіть період..." readonly
+                       class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+            </div>
+            <!-- Фільтр 2: Тип засобу -->
+            <div>
+                <label for="droneTypeFilter" class="block text-sm font-medium text-gray-400 mb-1">Тип засобу</label>
+                <select id="droneTypeFilter"
+                        class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
+                    <option value="all">Всі типи засобів</option>
+                </select>
+            </div>
+            <!-- Фільтр 3: Тип місії -->
+            <div>
+                <label for="missionTypeFilter" class="block text-sm font-medium text-gray-400 mb-1">Тип місії</label>
+                <select id="missionTypeFilter"
+                        class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
+                    <option value="all">Всі типи місій</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- KPI-картка -->
+        <div class="mb-6">
+             <div class="bg-gray-800 p-4 rounded-lg shadow-lg">
+                <h3 class="text-sm font-medium text-gray-400 uppercase">Загальна кількість втрат (за обраний період)</h3>
+                <p id="totalLossesKPI" class="text-4xl font-bold text-white mt-1">...</p>
+            </div>
+        </div>
+
+        <!-- Головна Візуалізація -->
+        <div class="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg mb-6">
+            <h2 class="text-xl font-semibold text-white mb-4">Втрати бортів протягом операційної доби</h2>
+            <!-- Індикатор завантаження -->
+            <div id="loadingIndicator" class="text-center py-16">
+                <p class="text-lg text-gray-400">Завантаження даних...</p>
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mt-4"></div>
+            </div>
+            <!-- Контейнер графіку -->
+            <div id="chartContainer" class="hidden" style="height: 450px;">
+                <canvas id="hourlyLossChart"></canvas>
+            </div>
+            <!-- Повідомлення про відсутність даних -->
+            <div id="noDataMessage" class="hidden text-center py-16">
+                 <p class="text-lg text-gray-400">Немає даних для відображення за обраними фільтрами.</p>
+            </div>
+        </div>
+
+        <!-- Кругові діаграми -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Діаграма "Тип засобу" -->
+            <div class="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg">
+                <h2 class="text-xl font-semibold text-white mb-4">Тип засобу</h2>
+                <div class="h-64 md:h-80 relative">
+                     <canvas id="dronePieChart"></canvas>
+                     <p id="noDataDronePie" class="hidden absolute inset-0 flex items-center justify-center text-gray-400">Немає даних</p>
+                </div>
+            </div>
+            <!-- Діаграма "Тип місії" -->
+            <div class="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg">
+                <h2 class="text-xl font-semibold text-white mb-4">Тип місії</h2>
+                <div class="h-64 md:h-80 relative">
+                    <canvas id="missionPieChart"></canvas>
+                    <p id="noDataMissionPie" class="hidden absolute inset-0 flex items-center justify-center text-gray-400">Немає даних</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Завантажуємо JS-файли (Litepicker та його плагін) перед скриптом дашборду -->
+    <!-- СКРИПТИ ПЕРЕМІЩЕНО В <head> ДЛЯ ГАРАНТОВАНОГО ЗАВАНТАЖЕННЯ -->
+    
+    <!-- Логіка дашборду -->
+    <script>
+        // --- КОНФІГУРАЦІЯ ---
