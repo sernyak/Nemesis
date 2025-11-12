@@ -17,6 +17,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker@2.0.12/dist/css/litepicker.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker-module-ranges@1.0.0/dist/index.css"/>
 
+    <!-- 5. Завантаження скриптів Litepicker в <head> з 'defer' -->
+    <!-- Це гарантує, що вони завантажені та виконані перед DOMContentLoaded -->
+    <script src="https://cdn.jsdelivr.net/npm/litepicker@2.0.12/dist/litepicker.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/litepicker-module-ranges@1.0.0/dist/index.js" defer></script>
+
     <style>
         /* * Старший Інженер: Вбудовані стилі для темної теми Litepicker
          * Гарантує, що календар та пресети відповідають темній темі дашборду.
@@ -188,9 +193,7 @@
     </div>
 
     <!-- Завантажуємо JS-файли (Litepicker та його плагін) перед скриптом дашборду -->
-    <!-- Це критично важливо для правильної ініціалізації! -->
-    <script src="https://cdn.jsdelivr.net/npm/litepicker@2.0.12/dist/litepicker.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/litepicker-module-ranges@1.0.0/dist/index.js"></script>
+    <!-- СКРИПТИ ПЕРЕМІЩЕНО В <head> ДЛЯ ГАРАНТОВАНОГО ЗАВАНТАЖЕННЯ -->
     
     <!-- Логіка дашборду -->
     <script>
@@ -214,6 +217,31 @@
             const hour = (OPERATIONAL_DAY_START_HOUR + i) % 24;
             return hour.toString().padStart(2, '0') + ':00';
         });
+
+        // --- ДОДАНО: Кастомні палітри кольорів для кругових діаграм ---
+        // (На основі вашого прикладу)
+        const PIE_COLORS_DRONE = [
+            '#4F46E5', // Indigo
+            '#10B981', // Emerald
+            '#F59E0B', // Amber
+            '#EF4444', // Red
+            '#0EA5E9', // Sky
+            '#14B8A6', // Teal
+            '#F97316', // Orange
+            '#6B7280'  // Gray
+        ];
+        
+        const PIE_COLORS_MISSION = [
+            '#0EA5E9', // Sky
+            '#14B8A6', // Teal
+            '#F97316', // Orange
+            '#6B7280', // Gray
+            '#4F46E5', // Indigo
+            '#10B981', // Emerald
+            '#F59E0B', // Amber
+            '#EF4444'  // Red
+        ];
+
 
         // --- ГЛОБАЛЬНІ ЗМІННІ ---
         let originalData = []; // Сховище для всіх завантажених даних
@@ -483,11 +511,21 @@
                 }
             };
 
+            // --- ВИПРАВЛЕННЯ: Створюємо єдиний об'єкт стилів для діаграм ---
+            const pieDatasetOptions = {
+                data: [],
+                borderWidth: 2,
+                borderColor: '#1f2937', // bg-gray-800 (для ефекту відступів)
+                // Ми не вказуємо backgroundColor, дозволяючи Chart.js
+                // автоматично застосувати свою палітру кольорів.
+            };
+
             // Діаграма "Тип засобу"
             const ctxDrone = document.getElementById('dronePieChart').getContext('2d');
             dronePieChart = new Chart(ctxDrone, {
                 type: 'doughnut',
-                data: { labels: [], datasets: [{ data: [], borderWidth: 2 }] },
+                // Використовуємо копію об'єкта стилів
+                data: { labels: [], datasets: [JSON.parse(JSON.stringify(pieDatasetOptions))] },
                 options: pieOptions
             });
 
@@ -495,7 +533,8 @@
             const ctxMission = document.getElementById('missionPieChart').getContext('2d');
             missionPieChart = new Chart(ctxMission, {
                 type: 'doughnut',
-                data: { labels: [], datasets: [{ data: [], borderWidth: 2 }] },
+                // Використовуємо копію об'єкта стилів
+                data: { labels: [], datasets: [JSON.parse(JSON.stringify(pieDatasetOptions))] },
                 options: pieOptions
             });
         }
@@ -564,12 +603,14 @@
             }
 
             // --- 5.5. Оновлюємо Кругові діаграми ---
-            updatePieChart(dronePieChart, filteredData, 'droneType', 'noDataDronePie');
-            updatePieChart(missionPieChart, filteredData, 'missionType', 'noDataMissionPie');
+            // Передаємо кастомні палітри кольорів у функцію оновлення
+            updatePieChart(dronePieChart, filteredData, 'droneType', 'noDataDronePie', PIE_COLORS_DRONE);
+            updatePieChart(missionPieChart, filteredData, 'missionType', 'noDataMissionPie', PIE_COLORS_MISSION);
         }
 
         // Допоміжна функція для оновлення кругових діаграм
-        function updatePieChart(chartInstance, data, propertyName, noDataElementId) {
+        // --- ОНОВЛЕНО: Функція тепер приймає масив кольорів ---
+        function updatePieChart(chartInstance, data, propertyName, noDataElementId, colorPalette) {
             const counts = {};
             let total = 0;
             
@@ -589,14 +630,20 @@
             const chartData = sortedEntries.map(entry => entry[1]);
 
             chartInstance.data.labels = labels;
-            chartInstance.data.datasets[0].data = chartData;
 
-            // Цей рядок змушує Chart.js регенерувати палітру кольорів за замовчуванням
-            chartInstance.data.datasets[0].backgroundColor = undefined;
-
-            // Також оновимо колір рамки відповідно до темної теми
-            chartInstance.data.datasets[0].borderColor = '#1f2937'; // bg-gray-800
-
+            // --- ВИПРАВЛЕННЯ (Спроба №4 - На основі вашого прикладу) ---
+            // Повністю видаляємо старий набір даних (dataset)
+            chartInstance.data.datasets.pop();
+            
+            // Додаємо новий, "чистий" набір даних,
+            // АЛЕ ТЕПЕР ЯВНО ВКАЗУЄМО 'backgroundColor'
+            chartInstance.data.datasets.push({
+                data: chartData,
+                borderWidth: 2,
+                borderColor: '#1f2937', // bg-gray-800
+                backgroundColor: colorPalette // <-- ОСЬ КЛЮЧОВЕ ВИПРАВЛЕННЯ
+            });
+            
             chartInstance.update();
 
             // Обробка повідомлення "Немає даних"
