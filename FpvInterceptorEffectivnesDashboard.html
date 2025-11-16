@@ -3,53 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Інтерактивний Дашборд Аналітики</title>
+    <title>Інтерактивний Дашборд ППО</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <style>
-        /* Стилізація темної теми та UI елементів, на основі dashboard_live.html */
         body { font-family: 'Inter', sans-serif; background-color: #111827; color: #e5e7eb; }
         .chart-container { position: relative; height: 40vh; width: 100%; }
         .card { background-color: #1f2937; border: 1px solid #374151; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
         .kpi-value { font-size: 2.25rem; font-weight: 800; line-height: 1; }
         .kpi-label { font-size: 0.875rem; color: #9ca3af; text-transform: uppercase; }
-        .loader-container { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 80vh; }
-        .loader { border: 4px solid #374151; border-top: 4px solid #3b82f6; border-radius: 50%; width: 50px; height: 50px; animation: spin 1.5s linear infinite; }
+        .loader-container { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 80vh; }
+        .loader { border: 4px solid #374151; border-top: 4px solid #3b82f6; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* Кастомна HTML воронка (стиль з dashboard_live.html) */
-        .html-funnel-container { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; height: 100%; min-height: 280px; justify-content: center; }
-        .funnel-segment { height: 25%; color: white; text-align: center; display: flex; justify-content: center; align-items: center; position: relative; transition: transform 0.2s ease-in-out; }
-        .funnel-segment-content { padding: 0.5rem 1rem; }
-        .funnel-label { font-weight: 600; }
-        .funnel-value { font-size: 1.5rem; font-weight: 700; }
-        .funnel-percentage { font-size: 0.8rem; color: #d1d5db; }
-        /* Ширина та форма сегментів воронки (як в original_live.html) */
-        #funnel-launches { background-color: rgba(59, 130, 246, 0.7); width: 100%; clip-path: polygon(0% 0, 100% 0, 92.5% 100%, 7.5% 100%); }
-        #funnel-detection { background-color: rgba(251, 191, 36, 0.7); width: 85%; clip-path: polygon(0% 0, 100% 0, 91.175% 100%, 8.825% 100%); }
-        #funnel-attempt { background-color: rgba(249, 115, 22, 0.7); width: 70%; clip-path: polygon(0% 0, 100% 0, 89.285% 100%, 10.715% 100%); }
-        #funnel-destroyed { background-color: rgba(34, 197, 94, 0.7); width: 55%; clip-path: polygon(0% 0, 100% 0, 86.36% 100%, 13.64% 100%); }
+        .hidden { display: none; }
+        /* Стилі для воронки */
+        .html-funnel-container { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; height: 100%; min-height: 300px; justify-content: center; }
+        .funnel-segment { height: 25%; color: white; text-align: center; display: flex; justify-content: center; align-items: center; position: relative; transition: transform 0.2s ease-in-out; padding: 0.5rem; box-sizing: border-box; }
+        .funnel-segment-content { display: flex; flex-direction: column; gap: 2px; }
+        .funnel-label { font-size: 0.875rem; font-weight: 600; }
+        .funnel-value { font-size: 1.5rem; font-weight: 800; }
+        .funnel-percentage { font-size: 0.75rem; color: #d1d5db; }
+        /* Clip-path для створення ефекту воронки */
+        #funnel-launches { background-color: rgba(59, 130, 246, 0.7); /* blue */ width: 100%; clip-path: polygon(0% 0, 100% 0, 92.5% 100%, 7.5% 100%); }
+        #funnel-detection { background-color: rgba(251, 191, 36, 0.7); /* yellow */ width: 85%; clip-path: polygon(0% 0, 100% 0, 91.175% 100%, 8.825% 100%); }
+        #funnel-attempt { background-color: rgba(249, 115, 22, 0.7); /* orange */ width: 70%; clip-path: polygon(0% 0, 100% 0, 89.285% 100%, 10.715% 100%); }
+        #funnel-destroyed { background-color: rgba(34, 197, 94, 0.7); /* green */ width: 55%; clip-path: polygon(0% 0, 100% 0, 86.36% 100%, 13.64% 100%); }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="p-4 md:p-8">
-    <div class="container mx-auto">
+    <div class="container mx-auto max-w-7xl">
         <header class="text-center mb-8">
             <h1 class="text-4xl font-bold text-white">Інтерактивний Дашборд Аналітики</h1>
-            <p class="text-lg text-gray-400 mt-2">Аналіз ефективності бойових вильотів</p>
+            <p class="text-lg text-gray-400 mt-2">Аналіз ефективності вильотів</p>
         </header>
-
-        <!-- Контейнер завантаження -->
-        <div id="loaderContainer" class="loader-container">
-            <div id="loader" class="loader"></div>
-            <p id="loaderMessage" class="text-gray-400 mt-4">Завантаження актуальних даних з Google Sheets...</p>
+        <!-- Loader -->
+        <div id="loader" class="loader-container">
+            <div class="loader"></div>
+            <p id="loadingMessage" class="text-gray-400 mt-4">Завантаження даних з Google Sheets...</p>
         </div>
-
-        <!-- Контент Дашборду (прихований до завантаження) -->
+        <!-- Dashboard Content -->
         <div id="dashboardContent" class="hidden">
-             <!-- Секція "Фільтри" -->
+             <!-- Filters Section -->
             <div class="card mb-8">
                  <h2 class="text-xl font-semibold mb-4 text-white">Фільтри</h2>
                  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
@@ -59,116 +57,115 @@
                     <div><label for="crewFilter" class="block text-sm font-medium text-gray-300 mb-1">Екіпаж</label><select id="crewFilter" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white"></select></div>
                     <div><label for="takeoffPointFilter" class="block text-sm font-medium text-gray-300 mb-1">Точка злету</label><select id="takeoffPointFilter" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white"></select></div>
                     <div><label for="targetTypeFilter" class="block text-sm font-medium text-gray-300 mb-1">Тип цілі</label><select id="targetTypeFilter" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white"></select></div>
-                    <div class="mt-4 md:mt-0 md:col-start-4"><button id="clearFiltersButton" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Очистити</button></div>
+                    <div class="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-2"><button id="clearFiltersButton" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Очистити фільтри</button></div>
                  </div>
             </div>
-
-            <!-- Секція "Абсолютні показники" -->
-            <h3 class="text-lg font-semibold mb-4 text-gray-300">Абсолютні Показники</h3>
-            <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+            <!-- KPIs -->
+            <h3 class="text-lg font-semibold mb-4 text-gray-300">Абсолютні Показники (по Унікальних Вильотах)</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
                 <div class="card text-center"><div id="kpiLaunches" class="kpi-value text-blue-400">0</div><div class="kpi-label">Кількість пусків</div></div>
-                <div class="card text-center"><div id="kpiVizContact" class="kpi-value text-yellow-400">0</div><div class="kpi-label">Візуальний контакт</div></div>
+                <div class="card text-center"><div id="kpiDetection" class="kpi-value text-yellow-400">0</div><div class="kpi-label">Візуальний контакт</div></div>
                 <div class="card text-center"><div id="kpiAttempt" class="kpi-value text-orange-400">0</div><div class="kpi-label">Спроба ураження</div></div>
                 <div class="card text-center"><div id="kpiDestroyed" class="kpi-value text-green-400">0</div><div class="kpi-label">Знищено</div></div>
-                <div class="card text-center"><div id="kpiNotDestroyed" class="kpi-value text-red-400">0</div><div class="kpi-label">Не знищено (промах)</div></div>
-                <div class="card text-center"><div id="kpiReturned" class="kpi-value text-gray-300">0</div><div class="kpi-label">Повернулось</div></div>
+                <div class="card text-center"><div id="kpiNotDestroyed" class="kpi-value text-red-400">0</div><div class="kpi-label">Промах (Втрачений)</div></div>
+                <div class="card text-center"><div id="kpiReturned" class="kpi-value text-indigo-400">0</div><div class="kpi-label">Повернулось</div></div>
             </div>
-
-            <!-- Секція "Ключові показники ефективності (KPI)" -->
             <h3 class="text-lg font-semibold mb-4 text-gray-300">Ключові Коефіцієнти Ефективності (ККЕ)</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <div class="card text-center"><div id="kpiEffDetection" class="kpi-value text-yellow-300">0%</div><div class="kpi-label">Ефективність виявлення</div></div>
-                <div class="card text-center"><div id="kpiEffAttempt" class="kpi-value text-orange-300">0%</div><div class="kpi-label">Ефективність спроб</div></div>
+                <div class="card text-center"><div id="kpiEffAttempt" class="kpi-value text-orange-300">0%</div><div class="kpi-label">Ефективність спроб уражень</div></div>
                 <div class="card text-center"><div id="kpiEffDestroy" class="kpi-value text-green-300">0%</div><div class="kpi-label">Ефективність знищення</div></div>
                 <div class="card text-center"><div id="kpiEffMiss" class="kpi-value text-red-300">0%</div><div class="kpi-label">Відсоток промахів</div></div>
             </div>
-
-            <!-- Секція "Графіки" -->
+            <!-- Charts -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                <!-- Воронка ефективності (HTML) -->
+                <!-- Воронка -->
                 <div class="card">
-                    <h3 class="text-lg font-semibold mb-4">Воронка ефективності</h3>
+                    <h3 class="text-lg font-semibold mb-4">Воронка ефективності (по унік. вильотах)</h3>
                     <div class="chart-container">
                         <div id="funnelChart" class="html-funnel-container">
-                            <div id="funnel-launches" class="funnel-segment"><div class="funnel-segment-content"><div class="funnel-label">Кількість вильотів</div><div class="funnel-value" id="funnel-value-launches">0</div></div></div>
-                            <div id="funnel-detection" class="funnel-segment"><div class="funnel-segment-content"><div class="funnel-label">Візуальний контакт</div><div class="funnel-value" id="funnel-value-detection">0</div><div class="funnel-percentage" id="funnel-perc-detection">(0%)</div></div></div>
-                            <div id="funnel-attempt" class="funnel-segment"><div class="funnel-segment-content"><div class="funnel-label">Спроба ураження</div><div class="funnel-value" id="funnel-value-attempt">0</div><div class="funnel-percentage" id="funnel-perc-attempt">(0%)</div></div></div>
-                            <div id="funnel-destroyed" class="funnel-segment"><div class="funnel-segment-content"><div class="funnel-label">Знищено</div><div class="funnel-value" id="funnel-value-destroyed">0</div><div class="funnel-percentage" id="funnel-perc-destroyed">(0%)</div></div></div>
+                            <div id="funnel-launches" class="funnel-segment">
+                                <div class="funnel-segment-content">
+                                    <div class="funnel-label">Кількість вильотів</div>
+                                    <div class="funnel-value" id="funnel-value-launches">0</div>
+                                </div>
+                            </div>
+                            <div id="funnel-detection" class="funnel-segment">
+                                <div class="funnel-segment-content">
+                                    <div class="funnel-label">Візуальний контакт</div>
+                                    <div class="funnel-value" id="funnel-value-detection">0</div>
+                                    <div class="funnel-percentage" id="funnel-perc-detection">(0%)</div>
+                                </div>
+                            </div>
+                            <div id="funnel-attempt" class="funnel-segment">
+                                <div class="funnel-segment-content">
+                                    <div class="funnel-label">Спроба ураження</div>
+                                    <div class="funnel-value" id="funnel-value-attempt">0</div>
+                                    <div class="funnel-percentage" id="funnel-perc-attempt">(0%)</div>
+                                </div>
+                            </div>
+                            <div id="funnel-destroyed" class="funnel-segment">
+                                <div class="funnel-segment-content">
+                                    <div class="funnel-label">Знищено</div>
+                                    <div class="funnel-value" id="funnel-value-destroyed">0</div>
+                                    <div class="funnel-percentage" id="funnel-perc-destroyed">(0%)</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Відсоткові показники ураження (Бар-чарт) -->
+                <!-- Відсоткові показники ураження -->
                 <div class="card">
                     <h3 class="text-lg font-semibold mb-4">Відсоткові показники ураження</h3>
-                    <div class="chart-container"><canvas id="percentageChart"></canvas></div>
+                    <div class="chart-container">
+                        <canvas id="killRateComparisonChart"></canvas>
+                    </div>
                 </div>
-                
-                <!-- Показники уражень по дням (Бар-чарт) -->
+                <!-- Показники по днях -->
                 <div class="card lg:col-span-2">
-                    <h3 class="text-lg font-semibold mb-4">Показники уражень по днях</h3>
-                    <div class="chart-container"><canvas id="dailyChart"></canvas></div>
+                    <h3 class="text-lg font-semibold mb-4">Пуски та Збиття по днях (Унікальні вильоти)</h3>
+                    <div class="chart-container"><canvas id="dailyKillRateChart"></canvas></div>
                 </div>
-
-                <!-- Ефективність по екіпажах (Бар-чарт) -->
+                <!-- Ефективність по екіпажах -->
                 <div class="card">
-                    <h3 class="text-lg font-semibold mb-4">Ефективність по екіпажах (Топ-10 по збиттях)</h3>
-                    <div class="chart-container" style="height: 50vh;"><canvas id="crewChart"></canvas></div>
+                    <h3 class="text-lg font-semibold mb-4">Ефективність по екіпажах</h3>
+                    <div class="chart-container" style="height: 50vh;">
+                        <canvas id="crewChart"></canvas>
+                    </div>
                 </div>
-
-                <!-- Ефективність по точках злету (Бар-чарт) -->
+                <!-- Ефективність по точках злету -->
                 <div class="card">
                     <h3 class="text-lg font-semibold mb-4">Ефективність по точках злету</h3>
-                    <div class="chart-container" style="height: 50vh;"><canvas id="takeoffPointChart"></canvas></div>
+                    <div class="chart-container" style="height: 50vh;">
+                        <canvas id="takeoffPointChart"></canvas>
+                    </div>
                 </div>
-
-                <!-- Знищено по типах БпЛА (Донат) -->
+                <!-- Знищено по типах БпЛА -->
                 <div class="card">
-                    <h3 class="text-lg font-semibold mb-4">Знищено по типах цілей</h3>
-                    <div class="chart-container"><canvas id="targetTypeChart"></canvas></div>
+                    <h3 class="text-lg font-semibold mb-4">Знищено по типах цілей (по унік. вильотах)</h3>
+                    <div class="chart-container">
+                        <canvas id="targetTypeChart"></canvas>
+                    </div>
                 </div>
-
-                <!-- Ефективність по секторах (Донат) -->
+                <!-- Ефективність по секторах -->
                 <div class="card">
-                    <h3 class="text-lg font-semibold mb-4">Знищено по секторах</h3>
-                    <div class="chart-container"><canvas id="sectorChart"></canvas></div>
+                    <h3 class="text-lg font-semibold mb-4">Знищено по секторах (по унік. вильотах)</h3>
+                    <div class="chart-container">
+                        <canvas id="sectorChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
     <script>
     // --- Глобальний стан та константи ---
     const AppState = {
         originalData: [],
         charts: {},
-        ui: {},
-        // URL для завантаження CSV з Google Sheets
-        googleSheetUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTNATRW_HxGW9zmFcJQR0vKq9eREDXuiTHqq3qyA9RzaiBLmvu-Ww7L7HJMuRHtz8Up3UHT86i-KYnu/pub?gid=652784530&single=true&output=csv"
-    };
-
-    // Константи для значень з CSV
-    const VISUAL_CONTACT = "Так, був візуальний контакт";
-    const ATTEMPT = "Ціль наздогнали, була спроба ураження";
-    const DESTROYED = "Збиття цілі"; // ОНОВЛЕНО: Тепер це з drone_status
-    const DRONE_LOST = "Втрачений";
-    const RETURNED_OK = "Повернувся, цілий";
-    const RETURNED_DMG = "Повернувся, пошкоджений";
-    
-    // Кольорові палітри для графіків
-    const PALETTE_1 = ['#54a0ff', '#9b59b6', '#1dd1a1', '#ff9f43', '#00d2d3', '#ff6b6b', '#6c5ce7', '#feca57'];
-    const PALETTE_2 = ['#2ecc71', '#f1c40f', '#e67e22', '#48dbfb', '#e74c3c', '#2980b9', '#d35400', '#8e44ad'];
-
-    // --- Ініціалізація ---
-
-    window.onload = initializeDashboard;
-
-    /**
-     * Ініціалізує дашборд: зв'язує UI елементи та запускає завантаження даних
-     */
-    async function initializeDashboard() {
-        // Зв'язуємо UI елементи з AppState
-        AppState.ui = {
+        ui: {
+            loader: document.getElementById('loader'),
+            loadingMessage: document.getElementById('loadingMessage'),
+            dashboardContent: document.getElementById('dashboardContent'),
             dateStart: document.getElementById('dateStart'),
             dateEnd: document.getElementById('dateEnd'),
             sectorFilter: document.getElementById('sectorFilter'),
@@ -176,156 +173,266 @@
             takeoffPointFilter: document.getElementById('takeoffPointFilter'),
             targetTypeFilter: document.getElementById('targetTypeFilter'),
             clearFiltersButton: document.getElementById('clearFiltersButton'),
-            loaderContainer: document.getElementById('loaderContainer'),
-            loaderMessage: document.getElementById('loaderMessage'),
-            dashboardContent: document.getElementById('dashboardContent'),
-        };
+        }
+    };
+    // Константи для значень з таблиці (для уникнення помилок)
+    const DETECTION_OK = "Так, був візуальний контакт";
+    const ATTEMPT = "Ціль наздогнали, була спроба ураження";
+    const DESTROYED = "Збиття цілі";
+    const NOT_DESTROYED = "Втрачений"; // Промах
+    const RETURNED_OK = "Повернувся, цілий";
+    const RETURNED_DMG = "Повернувся, пошкоджений";
 
-        // Налаштування Chart.js за замовчуванням
-        Chart.defaults.color = '#9ca3af';
-        Chart.defaults.font.family = "'Inter', sans-serif";
-        Chart.register(ChartDataLabels);
+    // Налаштування Chart.js
+    Chart.defaults.color = '#9ca3af';
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.register(ChartDataLabels);
 
-        // Починаємо завантаження даних
+    // Палітри
+    const PALETTE_1 = ['#54a0ff', '#9b59b6', '#1dd1a1', '#ff9f43', '#00d2d3', '#ff6b6b', '#6c5ce7', '#feca57'];
+    const PALETTE_2 = ['#2ecc71', '#f1c40f', '#e67e22', '#48dbfb', '#e74c3c', '#2980b9', '#d35400', '#8e44ad'];
+
+    // --- Ініціалізація ---
+    window.onload = initializeDashboard;
+
+    async function initializeDashboard() {
+        setLoadingState(true, 'Завантаження даних...');
         try {
-            const csvText = await fetchData(AppState.googleSheetUrl);
-            AppState.originalData = parseCSV(csvText);
-            
-            // Очистка даних: видаляємо рядки, де немає дати
-            AppState.originalData = AppState.originalData.filter(row => row.flight_start_datetime && row.flight_start_datetime.length > 10);
-            
-            // Конвертуємо дати
-            AppState.originalData.forEach(row => {
-                row.date = row.flight_start_datetime.split('T')[0];
-            });
-
+            const data = await fetchData();
+            AppState.originalData = preprocessData(data);
             populateFilters(AppState.originalData);
-            addEventListeners();
-            applyFilters();
-            
-            // Показываем контент
-            AppState.ui.loaderContainer.classList.add('hidden');
-            AppState.ui.dashboardContent.classList.remove('hidden');
+            addFilterListeners();
+            resetFilters(); // Це автоматично викличе applyFilters()
+            setLoadingState(false);
         } catch (error) {
-            console.error('Помилка ініціалізації дашборду:', error);
-            AppState.ui.loaderMessage.textContent = `Помилка завантаження даних: ${error.message}. Перезавантажте сторінку.`;
-            AppState.ui.loaderMessage.classList.add('text-red-400');
+            console.error("Помилка ініціалізації дашборду:", error);
+            setLoadingState(true, `Помилка: ${error.message}`);
         }
     }
 
-    /**
-     * Завантажує дані з URL
-     * @param {string} url - URL для завантаження
-     * @returns {Promise<string>} - Текст CSV
-     */
-    async function fetchData(url, retries = 3, delay = 1000) {
+    function setLoadingState(isLoading, message = 'Завантаження...') {
+        AppState.ui.loader.classList.toggle('hidden', !isLoading);
+        AppState.ui.loadingMessage.textContent = message;
+        AppState.ui.loadingMessage.classList.toggle('hidden', !isLoading);
+        AppState.ui.dashboardContent.classList.toggle('hidden', isLoading);
+    }
+
+    // --- Завантаження та обробка даних ---
+    async function fetchData(retries = 3, delay = 1000) {
+        // URL опублікованої Google Таблиці
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTNATRW_HxGW9zmFcJQR0vKq9eREDXuiTHqq3qyA9RzaiBLmvu-Ww7L7HJMuRHtz8Up3UHT86i-KYnu/pub?gid=652784530&single=true&output=csv';
+
         for (let i = 0; i < retries; i++) {
             try {
-                const response = await fetch(url);
+                // Додаємо timestamp, щоб уникнути кешування
+                const response = await fetch(`${csvUrl}&t=${new Date().getTime()}`);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return await response.text();
+                const csvText = await response.text();
+                return parseCSV(csvText);
             } catch (error) {
-                console.warn(`Attempt ${i + 1} failed:`, error);
-                if (i === retries - 1) throw error;
-                AppState.ui.loaderMessage.textContent = `Спроба завантаження ${i + 2} з ${retries}...`;
-                await new Promise(res => setTimeout(res, delay * (i + 1)));
+                console.warn(`Спроба ${i + 1} не вдалась:`, error);
+                if (i === retries - 1) {
+                    throw new Error('Не вдалося завантажити дані. Спробуйте оновити сторінку.');
+                }
+                setLoadingState(true, `Спроба завантаження ${i + 2}...`);
+                await new Promise(res => setTimeout(res, delay));
             }
         }
     }
 
-    /**
-     * Парсить CSV текст у масив об'єктів.
-     * Використовує Regex для коректної обробки значень в лапках, що містять коми.
-     * @param {string} text - Текст CSV
-     * @returns {Array<Object>} - Масив об'єктів
-     */
+    // Більш надійна функція parseCSV, що обробляє коми в лапках
     function parseCSV(text) {
-        const lines = text.trim().split('\n');
-        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-        
-        // Regex для розділення по комам, які не знаходяться всередині лапок
-        const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
+        const lines = text.split('\n');
+        if (lines.length === 0) return [];
+        const headerLine = lines[0].trim();
+        const header = parseCSVLine(headerLine);
 
-        return lines.slice(1).map(line => {
-            const values = line.split(regex).map(v => v.trim().replace(/^"|"$/g, ''));
-            return headers.reduce((obj, header, index) => {
-                obj[header] = values[index] || ''; // Забезпечуємо, що у кожної властивості є значення
-                return obj;
-            }, {});
+        const data = [];
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (line) {
+                const values = parseCSVLine(line);
+                if (values.length === header.length) {
+                    const obj = {};
+                    for (let j = 0; j < header.length; j++) {
+                        // Переконуємось, що заголовок існує
+                        if(header[j]) {
+                            obj[header[j]] = values[j];
+                        }
+                    }
+                    data.push(obj);
+                } else if (values.length > 0 && values[0] !== "") {
+                     // Показуємо попередження, якщо рядок не порожній, але має невірну к-ть полів
+                     console.warn(`Пропуск рядка ${i}: очікувалось ${header.length} полів, отримано ${values.length}`, values);
+                }
+            }
+        }
+        return data;
+    }
+
+    // Допоміжна функція для парсингу ОДНОГО рядка CSV, що поважає лапки
+    function parseCSVLine(line) {
+        const values = [];
+        let currentVal = '';
+        let inQuote = false;
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+
+            if (char === '"') {
+                if (inQuote && line[i+1] === '"') {
+                    // Це екранована подвійна лапка ""
+                    currentVal += '"';
+                    i++; // Пропускаємо наступну лапку
+                } else {
+                    // Це початок або кінець поля в лапках
+                    inQuote = !inQuote;
+                }
+            } else if (char === ',' && !inQuote) {
+                // Кінець значення (поза лапками)
+                values.push(currentVal);
+                currentVal = '';
+            } else {
+                // Звичайний символ
+                currentVal += char;
+            }
+        }
+        // Додаємо останнє значення в рядку
+        values.push(currentVal);
+
+        // Очищуємо значення від зайвих лапок на початку/кінці,
+        // які Google Sheets додає, та зайвих пробілів
+        return values.map(val => {
+            let cleanVal = val.trim();
+            if (cleanVal.startsWith('"') && cleanVal.endsWith('"')) {
+                cleanVal = cleanVal.substring(1, cleanVal.length - 1).replace(/""/g, '"');
+            }
+            return cleanVal.trim();
         });
     }
 
-    // --- Фільтри та Події ---
-
     /**
-     * Заповнює випадаючі списки фільтрів унікальними значеннями
+     * @description Обробляє сирі дані, створюючи поле 'date' лише з датою.
+     * Тут є ключове виправлення, яке ми внесемо: 'daily_grouping_label'
      */
+    function preprocessData(data) {
+        // Очищуємо та форматуємо дані при завантаженні
+        return data
+            .filter(row => row.flight_start_datetime && row.uuid) // Видаляємо рядки без дати або UUID
+            .map(row => {
+                // ПОВНА мітка часу (як мітка для унікальних подій, якщо потрібно)
+                const fullTimestamp = row.flight_start_datetime;
+
+                // Мітка ЛИШЕ з датою (YYYY-MM-DD) для коректного групування
+                const onlyDate = fullTimestamp.split('T')[0] || fullTimestamp; // Припускаємо ISO-формат 'YYYY-MM-DDT...'
+                
+                // Якщо fullTimestamp має вигляд "YYYY-MM-DD HH:mm:ss", як на скріншоті:
+                const dateParts = fullTimestamp.split(' ');
+                const finalDate = dateParts.length > 1 ? dateParts[0] : fullTimestamp; // Вибираємо лише дату, якщо є пробіл
+                
+                return {
+                    ...row,
+                    // 'date' - використовуємо для фільтрів (YYYY-MM-DD)
+                    date: finalDate, 
+                    // 'daily_grouping_label' - використовуємо для міток графіка, щоб уникнути деталізації по годинах
+                    daily_grouping_label: finalDate, 
+                    target_type: row.target_type || "Невідомо",
+                    sector: row.sector || "Невідомо",
+                    crew: row.crew || "Невідомо",
+                    takeoff_point: row.takeoff_point || "Невідомо",
+                };
+            });
+    }
+
+    // --- Фільтрація ---
     function populateFilters(data) {
-        if (data.length === 0) return;
+        const { dateStart, dateEnd, sectorFilter, crewFilter, takeoffPointFilter, targetTypeFilter } = AppState.ui;
 
-        const sectors = new Set();
-        const crews = new Set();
-        const takeoffPoints = new Set();
-        const targetTypes = new Set();
+        // Дати
+        if (data.length > 0) {
+            const dates = data.map(d => d.date).sort();
+            dateStart.value = dates[0];
+            dateStart.min = dates[0];
+            dateEnd.value = dates[dates.length - 1];
+            dateEnd.max = dates[dates.length - 1];
+        }
 
-        data.forEach(row => {
-            if (row.sector) sectors.add(row.sector);
-            if (row.crew) crews.add(row.crew);
-            if (row.takeoff_point) takeoffPoints.add(row.takeoff_point);
-            if (row.target_type) targetTypes.add(row.target_type);
-        });
-
+        // Функція для заповнення <select>
         const populateSelect = (select, items, allLabel) => {
             select.innerHTML = `<option value="all">${allLabel}</option>`;
             Array.from(items).sort().forEach(item => {
-                if(item && item !== 'null' && item !== 'undefined') {
+                if(item && item !== 'Невідомо' && item !== 'null' && item !== 'undefined') {
                     const option = document.createElement('option');
-                    option.value = item; 
-                    option.textContent = item; 
+                    option.value = item;
+                    option.textContent = item;
                     select.appendChild(option);
                 }
             });
         };
 
-        populateSelect(AppState.ui.sectorFilter, sectors, 'Всі сектори');
-        populateSelect(AppState.ui.crewFilter, crews, 'Всі екіпажі');
-        populateSelect(AppState.ui.takeoffPointFilter, takeoffPoints, 'Всі точки злету');
-        populateSelect(AppState.ui.targetTypeFilter, targetTypes, 'Всі типи цілей');
+        // Використовуємо Set для автоматичної дедуплікації
+        const crews = new Set(data.map(d => d.crew));
+        const takeoffPoints = new Set(data.map(d => d.takeoff_point));
+        const targetTypes = new Set(data.map(d => d.target_type));
 
-        // Встановлюємо дати за замовчуванням
-        const dates = data.map(d => d.date).sort();
-        AppState.ui.dateStart.value = dates[0];
-        AppState.ui.dateEnd.value = dates[dates.length - 1];
+        // Жорстко заданий список для Секторів
+        const fixedSectors = ["ДАРКНОД", "Київ", "Південь", "Північ"];
+        sectorFilter.innerHTML = `<option value="all">Всі сектори</option>`;
+        fixedSectors.forEach(sector => {
+            const option = document.createElement('option');
+            option.value = sector;
+            option.textContent = sector;
+            sectorFilter.appendChild(option);
+        });
+
+        populateSelect(crewFilter, crews, 'Всі екіпажі');
+        populateSelect(takeoffPointFilter, takeoffPoints, 'Всі точки злету');
+        populateSelect(targetTypeFilter, targetTypes, 'Всі типи цілей');
     }
 
-    /**
-     * Додає слухачів подій до елементів керування фільтрами
-     */
-    function addEventListeners() {
-        const filters = [
-            AppState.ui.dateStart, AppState.ui.dateEnd, AppState.ui.sectorFilter,
-            AppState.ui.crewFilter, AppState.ui.takeoffPointFilter, AppState.ui.targetTypeFilter
-        ];
-        filters.forEach(filter => filter.addEventListener('change', applyFilters));
-        AppState.ui.clearFiltersButton.addEventListener('click', resetFilters);
+    function addFilterListeners() {
+        const { dateStart, dateEnd, sectorFilter, crewFilter, takeoffPointFilter, targetTypeFilter, clearFiltersButton } = AppState.ui;
+
+        [dateStart, dateEnd, sectorFilter, crewFilter, takeoffPointFilter, targetTypeFilter].forEach(el => {
+            el.addEventListener('change', applyFilters);
+        });
+
+        clearFiltersButton.addEventListener('click', resetFilters);
     }
 
-    /**
-     * Застосовує фільтри та оновлює дашборд
-     */
+    function resetFilters() {
+        const dateStart = document.getElementById('dateStart');
+        const dateEnd = document.getElementById('dateEnd');
+        const sectorFilter = document.getElementById('sectorFilter');
+        const crewFilter = document.getElementById('crewFilter');
+        const takeoffPointFilter = document.getElementById('takeoffPointFilter');
+        const targetTypeFilter = document.getElementById('targetTypeFilter');
+
+        if (AppState.originalData.length > 0) {
+            const dates = AppState.originalData.map(d => d.date).sort();
+            dateStart.value = dates[0];
+            dateEnd.value = dates[dates.length - 1];
+        }
+
+        sectorFilter.value = 'all';
+        crewFilter.value = 'all';
+        takeoffPointFilter.value = 'all';
+        targetTypeFilter.value = 'all';
+
+        applyFilters(); // Застосовуємо фільтри після скидання
+    }
+
     function applyFilters() {
-        const { dateStart, dateEnd, sectorFilter, crewFilter, takeoffPointFilter, targetTypeFilter } = AppState.ui;
-        
         const filters = {
-            startDate: dateStart.value,
-            endDate: dateEnd.value,
-            sector: sectorFilter.value,
-            crew: crewFilter.value,
-            takeoffPoint: takeoffPointFilter.value,
-            targetType: targetTypeFilter.value,
+            startDate: document.getElementById('dateStart').value,
+            endDate: document.getElementById('dateEnd').value,
+            sector: document.getElementById('sectorFilter').value,
+            crew: document.getElementById('crewFilter').value,
+            takeoffPoint: document.getElementById('takeoffPointFilter').value,
+            targetType: document.getElementById('targetTypeFilter').value,
         };
 
         const filteredData = AppState.originalData.filter(row => {
+            // Фільтрація по даті використовує лише YYYY-MM-DD
             return (!filters.startDate || row.date >= filters.startDate) &&
                    (!filters.endDate || row.date <= filters.endDate) &&
                    (filters.sector === 'all' || row.sector === filters.sector) &&
@@ -337,159 +444,115 @@
         updateDashboard(filteredData);
     }
 
-    /**
-     * Скидає всі фільтри до значень за замовчуванням
-     */
-    function resetFilters() {
-        const dates = AppState.originalData.map(d => d.date).sort();
-        AppState.ui.dateStart.value = dates[0];
-        AppState.ui.dateEnd.value = dates[dates.length - 1];
-        
-        AppState.ui.sectorFilter.value = 'all';
-        AppState.ui.crewFilter.value = 'all';
-        AppState.ui.takeoffPointFilter.value = 'all';
-        AppState.ui.targetTypeFilter.value = 'all';
-        
-        applyFilters();
-    }
-
     // --- Оновлення Дашборду ---
-
-    /**
-     * Головна функція оновлення, яка розраховує KPI та викликає оновлення графіків
-     */
     function updateDashboard(data) {
-        // 1. Розрахунок Абсолютних KPI
-        // Відфільтровуємо "сміттєві" рядки без UUID, щоб уникнути помилок
-        const validData = data.filter(d => d.uuid && d.uuid.length > 10);
+        // Фільтруємо дані, щоб мати лише рядки з валідним UUID
+        // УСІ розрахунки тепер базуються на унікальних вильотах (UUID)
+        const validData = data.filter(d => d.uuid && d.uuid.length > 10); // Базове очищення
 
-        // Рахуємо унікальні вильоти (UUIDs)
-        const totalLaunches = new Set(validData.map(d => d.uuid)).size;
-        
-        // Рахуємо унікальні вильоти з візуальним контактом
-        const totalVizContact = new Set(validData.filter(d => d.target_detection === VISUAL_CONTACT).map(d => d.uuid)).size;
-        
-        // Рахуємо унікальні вильоти зі спробою ураження
-        const totalAttempt = new Set(validData.filter(d => d.hit_target_attempt === ATTEMPT).map(d => d.uuid)).size;
-        
-        // Рахуємо унікальні вильоти, що призвели до знищення (хоча б одного)
-        const totalDestroyed = new Set(validData.filter(d => d.drone_status === DESTROYED).map(d => d.uuid)).size;
-        
-        // "Промах" рахується як кількість унікальних вильотів, де дрон був "Втрачений"
-        const totalNotDestroyed = new Set(validData.filter(d => d.drone_status === DRONE_LOST).map(d => d.uuid)).size;
-        
-        // Рахуємо унікальні вильоти, що повернулись
-        const totalReturned = new Set(validData.filter(d => d.drone_status === RETURNED_OK || d.drone_status === RETURNED_DMG).map(d => d.uuid)).size;
+        // Створюємо Sets унікальних UUID для кожної категорії
+        const launch_uuids = new Set(validData.map(d => d.uuid));
+        const detection_uuids = new Set(validData.filter(d => d.target_detection === DETECTION_OK).map(d => d.uuid));
+        const attempt_uuids = new Set(validData.filter(d => d.hit_target_attempt === ATTEMPT).map(d => d.uuid));
+        const destroyed_uuids = new Set(validData.filter(d => d.drone_status === DESTROYED).map(d => d.uuid));
+        const not_destroyed_uuids = new Set(validData.filter(d => d.drone_status === NOT_DESTROYED).map(d => d.uuid));
+        const returned_uuids = new Set(validData.filter(d => d.drone_status === RETURNED_OK || d.drone_status === RETURNED_DMG).map(d => d.uuid));
 
+        // Абсолютні KPI (розмір Set'a)
+        const totalLaunches = launch_uuids.size;
+        const totalDetection = detection_uuids.size;
+        const totalAttempt = attempt_uuids.size;
+        const totalDestroyed = destroyed_uuids.size;
+        const totalNotDestroyed = not_destroyed_uuids.size;
+        const totalReturned = returned_uuids.size;
 
-        // 2. Оновлення Абсолютних KPI
-        document.getElementById('kpiLaunches').textContent = totalLaunches.toLocaleString('uk-UA');
-        document.getElementById('kpiVizContact').textContent = totalVizContact.toLocaleString('uk-UA');
-        document.getElementById('kpiAttempt').textContent = totalAttempt.toLocaleString('uk-UA');
-        document.getElementById('kpiDestroyed').textContent = totalDestroyed.toLocaleString('uk-UA');
-        document.getElementById('kpiNotDestroyed').textContent = totalNotDestroyed.toLocaleString('uk-UA');
-        document.getElementById('kpiReturned').textContent = totalReturned.toLocaleString('uk-UA');
+        document.getElementById('kpiLaunches').textContent = totalLaunches;
+        document.getElementById('kpiDetection').textContent = totalDetection;
+        document.getElementById('kpiAttempt').textContent = totalAttempt;
+        document.getElementById('kpiDestroyed').textContent = totalDestroyed;
+        document.getElementById('kpiNotDestroyed').textContent = totalNotDestroyed;
+        document.getElementById('kpiReturned').textContent = totalReturned;
 
-        // 3. Розрахунок Ефективності (KPI)
-        // Ефективність виявлення (на рівні вильотів)
-        const effDetection = totalLaunches > 0 ? (totalVizContact / totalLaunches) * 100 : 0;
-        
-        // Ефективність знищення (загальна, на рівні вильотів)
+        // ККЕ (Відсотки)
+        const effDetection = totalLaunches > 0 ? (totalDetection / totalLaunches) * 100 : 0;
         const effDestroy = totalLaunches > 0 ? (totalDestroyed / totalLaunches) * 100 : 0;
-        
-        // ОНОВЛЕНО: Розрахунок "Ефективності спроб" на основі унікальних UUID
-        // 1. Унікальні вильоти, де була спроба
-        const totalAttempt_flights = totalAttempt; // Ми вже маємо це
-        // 2. Унікальні вильоти, де була І спроба, І збиття
+
+        // Розрахунок "Ефективності спроб"
+        const totalAttempt_flights = totalAttempt;
         const totalDestroyed_from_attempt_flights = new Set(
             validData
                 .filter(d => d.hit_target_attempt === ATTEMPT && d.drone_status === DESTROYED)
                 .map(d => d.uuid)
         ).size;
-
-        // Ефективність спроб (на рівні вильотів)
         const effAttempt = totalAttempt_flights > 0 ? (totalDestroyed_from_attempt_flights / totalAttempt_flights) * 100 : 0;
-        
-        // Відсоток промахів (на рівні вильотів, totalNotDestroyed - це унікальні втрачені вильоти)
+
+        // Відсоток промахів
         const effMiss = totalLaunches > 0 ? (totalNotDestroyed / totalLaunches) * 100 : 0;
 
-        // 4. Оновлення Ефективності (KPI)
         document.getElementById('kpiEffDetection').textContent = effDetection.toFixed(1) + '%';
         document.getElementById('kpiEffAttempt').textContent = effAttempt.toFixed(1) + '%';
         document.getElementById('kpiEffDestroy').textContent = effDestroy.toFixed(1) + '%';
         document.getElementById('kpiEffMiss').textContent = effMiss.toFixed(1) + '%';
 
-        // 5. Оновлення Графіків
-        const funnelData = {
-            launches: totalLaunches,
-            detection: totalVizContact,
+        // Оновлення графіків
+        updateFunnelChart({
+            launched: totalLaunches,
+            detected: totalDetection,
             attempt: totalAttempt,
             destroyed: totalDestroyed
-        };
-        updateFunnelChart(funnelData);
+        });
 
-        const percentageData = {
-            fromLaunches: effDetection,
-            fromAttempts: effAttempt,
-            overall: effDestroy
-        };
-        updatePercentageChart(percentageData);
-        
-        updateDailyChart(data);
-        updateCrewChart(data);
-        updateTakeoffPointChart(data);
-        updateTargetTypeChart(data);
-        updateSectorChart(data);
+        updateKillRateComparisonChart({
+            fromLaunches: effDestroy,
+            fromDetection: totalDetection > 0 ? (totalDestroyed / totalDetection) * 100 : 0,
+            fromAttempts: effAttempt
+        });
+
+        // ВИКЛИК ОНОВЛЕНОЇ ФУНКЦІЇ ДЛЯ ДВОХ ПОКАЗНИКІВ
+        updateDailyChart(validData);
+
+        // Оновлюємо інші графіки, передаючи відфільтровані валідні дані
+        AppState.charts.crew = createHorizontalBarChart('crewChart', AppState.charts.crew, validData, 'crew', PALETTE_1, 15);
+        AppState.charts.takeoffPoint = createHorizontalBarChart('takeoffPointChart', AppState.charts.takeoffPoint, validData, 'takeoff_point', PALETTE_2, 15);
+        AppState.charts.targetType = createDoughnutChart('targetTypeChart', AppState.charts.targetType, validData, 'target_type', PALETTE_1);
+        AppState.charts.sector = createDoughnutChart('sectorChart', AppState.charts.sector, validData, 'sector', PALETTE_2);
     }
 
     // --- Функції оновлення графіків ---
+    function updateFunnelChart(totals) {
+        const { launched, detected, attempt, destroyed } = totals;
 
-    /**
-     * Оновлює HTML воронку
-     */
-    function updateFunnelChart(data) {
-        const { launches, detection, attempt, destroyed } = data;
-        
-        document.getElementById('funnel-value-launches').textContent = launches.toLocaleString('uk-UA');
-        document.getElementById('funnel-value-detection').textContent = detection.toLocaleString('uk-UA');
-        document.getElementById('funnel-value-attempt').textContent = attempt.toLocaleString('uk-UA');
-        document.getElementById('funnel-value-destroyed').textContent = destroyed.toLocaleString('uk-UA');
+        document.getElementById('funnel-value-launches').textContent = launched;
+        document.getElementById('funnel-value-detection').textContent = detected;
+        document.getElementById('funnel-value-attempt').textContent = attempt;
+        document.getElementById('funnel-value-destroyed').textContent = destroyed;
 
-        const percDetection = launches > 0 ? (detection / launches * 100) : 0;
-        const percAttempt = detection > 0 ? (attempt / detection * 100) : 0;
-        const percDestroyed = attempt > 0 ? (destroyed / attempt * 100) : 0;
+        const percDetected = launched > 0 ? (detected / launched * 100) : 0;
+        const percAttempt = detected > 0 ? (attempt / detected * 100) : 0; // % спроб від виявлених
+        const percDestroyed = attempt > 0 ? (destroyed / attempt * 100) : 0; // % збиття від спроб
 
-        document.getElementById('funnel-perc-detection').textContent = `(${percDetection.toFixed(1)}% від вильотів)`;
-        document.getElementById('funnel-perc-attempt').textContent = `(${percAttempt.toFixed(1)}% від виявлених)`;
-        document.getElementById('funnel-perc-destroyed').textContent = `(${percDestroyed.toFixed(1)}% від спроб)`;
+        document.getElementById('funnel-perc-detection').textContent = `(${percDetected.toFixed(0)}% від вильотів)`;
+        document.getElementById('funnel-perc-attempt').textContent = `(${percAttempt.toFixed(0)}% від виявлених)`;
+        document.getElementById('funnel-perc-destroyed').textContent = `(${percDestroyed.toFixed(0)}% від спроб)`;
     }
 
-    /**
-     * Оновлює графік "Відсоткові показники ураження"
-     */
-    function updatePercentageChart(data) {
-        const { fromLaunches, fromAttempts, overall } = data;
-        const ctx = document.getElementById('percentageChart').getContext('2d');
-        if (AppState.charts.percentage) AppState.charts.percentage.destroy();
-        
+    function updateKillRateComparisonChart(rates) {
+        if (AppState.charts.killRateComparison) AppState.charts.killRateComparison.destroy();
+
         const options = getChartOptions();
         options.indexAxis = 'y';
         options.scales.x.max = 100;
         options.scales.x.ticks = { callback: (value) => value + '%' };
-        options.plugins.datalabels = { 
-            display: true, anchor: 'end', align: 'right', color: 'white', 
-            font: { weight: 'bold' }, 
-            formatter: (value) => `${value.toFixed(1)}%` 
-        };
+        options.plugins.datalabels = { display: true, anchor: 'end', align: 'right', color: 'white', font: { weight: 'bold' }, formatter: (value) => `${value.toFixed(1)}%` };
 
-        AppState.charts.percentage = new Chart(ctx, {
+        AppState.charts.killRateComparison = new Chart(document.getElementById('killRateComparisonChart'), {
             type: 'bar',
             data: {
-                labels: ['% збиття від Спроб', '% виявлення від Пусків', '% збиття від Пусків (загальний)'],
-                datasets: [{ 
-                    label: 'Ефективність', 
-                    data: [fromAttempts, fromLaunches, overall], 
-                    backgroundColor: ['#f97316', '#facc15', '#22c55e'] 
+                labels: ['% збиття від Спроб', '% збиття від Виявлених', '% збиття від Пусків'],
+                datasets: [{
+                    label: 'Ефективність ураження',
+                    data: [rates.fromAttempts, rates.fromDetection, rates.fromLaunches],
+                    backgroundColor: ['#2ecc71', '#f1c40f', '#3498db']
                 }]
             },
             options: options
@@ -497,86 +560,113 @@
     }
 
     /**
-     * Оновлює графік "Показники уражень по дням"
+     * @description Оновлена функція для відображення тільки унікальних Пусків та Знищених цілей по днях.
+     * Тут ми використовуємо 'daily_grouping_label' (який є лише датою), щоб уникнути групування по годинах.
+     * @param {Array<Object>} data - Відфільтровані дані.
      */
     function updateDailyChart(data) {
-        const ctx = document.getElementById('dailyChart').getContext('2d');
-        if (AppState.charts.daily) AppState.charts.daily.destroy();
-        
-        // Використовуємо validData, яке вже відфільтровано
-        const validData = data.filter(d => d.uuid && d.uuid.length > 10);
+        if (AppState.charts.dailyKillRate) AppState.charts.dailyKillRate.destroy();
 
-        const dailyData = validData.reduce((acc, row) => {
-            const date = row.date;
-            if (!acc[date]) {
-                // Використовуємо Set для зберігання унікальних UUID по кожному дню
-                acc[date] = { launch_uuids: new Set(), destroyed_uuids: new Set() };
+        // Групуємо по мітці (яка тепер лише дата), рахуючи УНІКАЛЬНІ UUID для пусків та збитих
+        const dailyData = data.reduce((acc, row) => {
+            // !!! ВИПРАВЛЕНО: Групування тепер відбувається по чистому полю 'daily_grouping_label' (тільки дата)
+            const dayLabel = row.daily_grouping_label; 
+            if (!acc[dayLabel]) {
+                acc[dayLabel] = {
+                    launch_uuids: new Set(),
+                    destroyed_uuids: new Set()
+                };
             }
-            // Додаємо UUID вильоту
-            acc[date].launch_uuids.add(row.uuid);
-            
-            // Якщо в цьому рядку є знищення, додаємо UUID до сету знищених
+            // Пуски = Унікальні UUID
+            acc[dayLabel].launch_uuids.add(row.uuid);
+
+            // Знищені = Унікальні UUID, де статус "Збиття цілі"
             if (row.drone_status === DESTROYED) {
-                acc[date].destroyed_uuids.add(row.uuid);
+                acc[dayLabel].destroyed_uuids.add(row.uuid);
             }
             return acc;
         }, {});
 
-        const sortedDates = Object.keys(dailyData).sort();
+        // Мітки на осі X - лише дати
+        const sortedDays = Object.keys(dailyData).sort();
+        const labels = sortedDays;
+
+        // Кількість унікальних пусків
+        const launchesData = sortedDays.map(day => dailyData[day].launch_uuids.size);
+        // Кількість унікальних знищених
+        const destroyedData = sortedDays.map(day => dailyData[day].destroyed_uuids.size);
+
+        const options = getChartOptions();
+
+        // Налаштування тултіпу для відображення Kill Rate
+        options.plugins.tooltip = {
+            callbacks: {
+                label: function(context) {
+                    const label = context.dataset.label || '';
+                    const value = context.raw;
+                    return `${label}: ${value}`;
+                },
+                footer: function(tooltipItems) {
+                    // Беремо індекс першого елемента (обидва стовпчики матимуть однаковий індекс)
+                    const i = tooltipItems[0].dataIndex;
+                    const totalLaunches = launchesData[i];
+                    const totalDestroyed = destroyedData[i];
+                    const kr = totalLaunches > 0 ? (totalDestroyed / totalLaunches * 100) : 0;
+                    return `\nВсього вильотів: ${totalLaunches}\nЗнищено: ${totalDestroyed}\nKill Rate: ${kr.toFixed(0)}%`;
+                }
+            }
+        };
         
-        AppState.charts.daily = new Chart(ctx, {
+        // !!! ВИПРАВЛЕНО: Для масштабування осі X використовуємо тип 'category'
+        options.scales.x = { 
+            type: 'category', 
+            grid: { display: false }, 
+            ticks: { color: '#9ca3af' } 
+        };
+
+        AppState.charts.dailyKillRate = new Chart(document.getElementById('dailyKillRateChart'), {
             type: 'bar',
             data: {
-                labels: sortedDates,
+                labels,
                 datasets: [
                     {
-                        label: 'Кількість пусків (унік. UUID)',
-                        data: sortedDates.map(date => dailyData[date].launch_uuids.size),
-                        backgroundColor: 'rgba(59, 130, 246, 0.7)'
+                        label: 'Кількість пусків (унік. вильотів)',
+                        data: launchesData,
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)' // Синій
                     },
                     {
-                        label: 'Кількість знищено (унік. UUID)',
-                        data: sortedDates.map(date => dailyData[date].destroyed_uuids.size),
-                        backgroundColor: 'rgba(34, 197, 94, 0.7)'
+                        label: 'Знищено (унік. вильотів)',
+                        data: destroyedData,
+                        backgroundColor: 'rgba(34, 197, 94, 0.7)' // Зелений
                     }
                 ]
             },
-            options: getChartOptions()
+            options: options
         });
     }
 
-    /**
-     * Створює горизонтальний бар-чарт (для екіпажів, точок злету)
-     * @param {string} canvasId - ID канвасу
-     * @param {Chart} chartInstance - Існуючий екземпляр (для destroy)
-     * @param {Array<Object>} data - Відфільтровані дані
-     * @param {string} dataKey - Ключ для групування (e.g., 'crew')
-     * @param {Array<string>} colorPalette - Палітра кольорів
-     * @param {number} topN - Кількість топ-N записів для показу
-     * @returns {Chart} - Новий екземпляр Chart
-     */
+    // --- Універсальні функції для графіків (без змін) ---
+    // Функція для Горизонтальних Бар-чартів (Екіпажі, Точки злету)
     function createHorizontalBarChart(canvasId, chartInstance, data, dataKey, colorPalette, topN = 10) {
         const ctx = document.getElementById(canvasId).getContext('2d');
         if (chartInstance) chartInstance.destroy();
-        
         // Використовуємо validData, яке вже відфільтровано
         const validData = data.filter(d => d.uuid && d.uuid.length > 10);
-
+        // Агрегуємо по унікальних UUID для кожного ключа (екіпаж, точка)
         const dataMap = validData.reduce((acc, item) => {
             const key = item[dataKey];
             const uuid = item.uuid;
             if (key && key !== 'null' && key !== 'undefined' && uuid) {
                 if (!acc[key]) {
-                    acc[key] = { 
-                        launch_uuids: new Set(), 
+                    acc[key] = {
+                        launch_uuids: new Set(),
                         destroyed_uuids: new Set(),
-                        // destroyed_events: 0 // Цей лічильник подій більше не потрібен
                     };
                 }
-                
+
                 // Додаємо UUID до всіх вильотів для цього ключа
                 acc[key].launch_uuids.add(uuid);
-                
+
                 // Якщо ця подія - збиття
                 if (item.drone_status === DESTROYED) {
                     // Додаємо UUID до збитих вильотів для цього ключа
@@ -585,164 +675,132 @@
             }
             return acc;
         }, {});
-        
+
         const sortedData = Object.entries(dataMap)
-            .filter(([, stats]) => stats.destroyed_uuids.size > 0) // ОНОВЛЕНО: Фільтруємо по унікальних збитих вильотах
-            .sort(([, a], [, b]) => b.destroyed_uuids.size - a.destroyed_uuids.size) // ОНОВЛЕНО: Сортуємо по унікальних збитих вильотах
+            .filter(([, stats]) => stats.destroyed_uuids.size > 0) // Фільтруємо по унікальних збитих вильотах
+            .sort(([, a], [, b]) => b.destroyed_uuids.size - a.destroyed_uuids.size) // Сортуємо по унікальних збитих вильотах
             .slice(0, topN); // Беремо топ N
-        
+
         if (sortedData.length === 0) {
-            showNoDataMessage(ctx);
-            return null;
+            return showEmptyChartMessage(ctx);
         }
 
         const options = getChartOptions();
         options.indexAxis = 'y';
-        options.plugins.datalabels = { 
+        options.plugins.datalabels = {
             anchor: 'end', align: 'right', color: 'white', font: { weight: 'bold' },
-            formatter: (value, context) => { 
-                const stats = sortedData[context.dataIndex][1]; 
+            formatter: (value, context) => {
+                const stats = sortedData[context.dataIndex][1];
                 const totalLaunches = stats.launch_uuids.size;
                 const totalDestroyed = stats.destroyed_uuids.size;
-                
+
                 // Рахуємо "Ефективність знищення від пусків" саме для цього ключа
-                const kr = totalLaunches > 0 ? (totalDestroyed / totalLaunches * 100) : 0; 
-                
+                const kr = totalLaunches > 0 ? (totalDestroyed / totalLaunches) * 100 : 0;
+
                 // 'value' - це stats.destroyed_uuids.size (кількість унікальних збитих вильотів)
-                return `${value} збито (${kr.toFixed(0)}%)`; 
+                return `${value} збито (${kr.toFixed(0)}%)`;
             }
         };
 
         return new Chart(ctx, {
-            type: 'bar', 
+            type: 'bar',
             data: {
                 labels: sortedData.map(c => c[0]),
-                datasets: [{ 
+                datasets: [{
                     label: 'Знищено (унік. вильотів)', // ОНОВЛЕНО: мітка
                     data: sortedData.map(c => c[1].destroyed_uuids.size), // ОНОВЛЕНО: Довжина стовпця = унікальні збиті вильоти
-                    backgroundColor: colorPalette, 
+                    backgroundColor: colorPalette,
                 }]
-            }, 
+            },
             options: options
         });
     }
 
-    /**
-     * Створює донат-чарт (для типів цілей, секторів)
-     * @param {string} canvasId - ID канвасу
-     * @param {Chart} chartInstance - Існуючий екземпляр (для destroy)
-     * @param {Array<Object>} data - Відфільтровані дані
-     * @param {string} dataKey - Ключ для групування (e.g., 'target_type')
-     * @param {Array<string>} colorPalette - Палітра кольорів
-     * @returns {Chart} - Новий екземпляр Chart
-     */
+    // Функція для Донат-чартів (Типи цілей, Сектори)
     function createDoughnutChart(canvasId, chartInstance, data, dataKey, colorPalette) {
         const ctx = document.getElementById(canvasId).getContext('2d');
         if (chartInstance) chartInstance.destroy();
-        
         // Використовуємо validData, яке вже відфільтровано
         const validData = data.filter(d => d.uuid && d.uuid.length > 10);
 
-        // ОНОВЛЕНО: Агрегуємо по унікальних UUID для кожної категорії
+        // Агрегуємо по унікальних UUID для кожної категорії
         const aggregated = validData
             .filter(i => i.drone_status === DESTROYED)
             .reduce((acc, item) => {
                 const key = item[dataKey];
                 const uuid = item.uuid;
-                if (key && key !== 'null' && key !== 'undefined' && uuid) { 
-                    if (!acc[key]) {
+                if (key && key !== 'null' && key !== 'undefined' && uuid) {
+                     if (!acc[key]) {
                         acc[key] = new Set();
                     }
-                    acc[key].add(uuid); 
-                }
+                    acc[key].add(uuid);
+                 }
                 return acc;
             }, {});
-        
-        // ОНОВЛЕНО: Трансформуємо Set'и у їхні розміри (кількість)
+
+        // Трансформуємо Set'и у їхні розміри (кількість)
         const sortedData = Object.entries(aggregated)
             .map(([key, uuidSet]) => [key, uuidSet.size])
             .sort(([,a],[,b]) => b-a);
-        
+
         if (sortedData.length === 0) {
-            showNoDataMessage(ctx);
-            return null;
+            return showEmptyChartMessage(ctx);
         }
 
         const total = sortedData.reduce((sum, item) => sum + item[1], 0);
 
         return new Chart(ctx, {
-            type: 'doughnut', 
+            type: 'doughnut',
             data: {
                 labels: sortedData.map(d => d[0]),
-                datasets: [{ 
-                    data: sortedData.map(d => d[1]), 
-                    backgroundColor: Array.from({ length: sortedData.length }, (_, i) => colorPalette[i % colorPalette.length]), 
-                    borderWidth: 0 
+                datasets: [{
+                    data: sortedData.map(d => d[1]),
+                    backgroundColor: Array.from({ length: sortedData.length }, (_, i) => colorPalette[i % colorPalette.length]),
+                    borderWidth: 0
                 }]
-            }, 
+            },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: {
                     legend: { position: 'right', labels: { boxWidth: 20, color: '#e5e7eb' } },
-                    datalabels: { 
+                    datalabels: {
                         color: 'white', textAlign: 'center', font: { weight: 'bold', size: 11 },
-                        formatter: (value) => { 
-                            const p = total > 0 ? (value / total * 100) : 0; 
-                            if (p < 4) return null; // Ховаємо мітки, якщо % замалий
-                            return `${value}\n(${p.toFixed(0)}%)`; 
+                        formatter: (value) => {
+                            const p = total > 0 ? (value / total * 100) : 0;
+                            if (p < 4) return null; // Не показувати мітки для дуже малих секторів
+                            return `${value}\n(${p.toFixed(0)}%)`;
                         }
                     }
                 }
             }
         });
     }
-    
-    // Функції-обгортки для оновлення конкретних графіків
-    function updateCrewChart(data) { 
-        AppState.charts.crew = createHorizontalBarChart('crewChart', AppState.charts.crew, data, 'crew', PALETTE_1, 10); 
-    }
-    function updateTakeoffPointChart(data) { 
-        AppState.charts.takeoffPoint = createHorizontalBarChart('takeoffPointChart', AppState.charts.takeoffPoint, data, 'takeoff_point', PALETTE_2, 10); 
-    }
-    function updateTargetTypeChart(data) { 
-        AppState.charts.targetType = createDoughnutChart('targetTypeChart', AppState.charts.targetType, data, 'target_type', PALETTE_1); 
-    }
-    function updateSectorChart(data) { 
-        AppState.charts.sector = createDoughnutChart('sectorChart', AppState.charts.sector, data, 'sector', PALETTE_2); 
-    }
 
     // --- Допоміжні функції ---
-
-    /**
-     * Повертає базові опції для графіків Chart.js
-     */
-    function getChartOptions() { 
-        return { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            plugins: { 
-                legend: { position: 'top', labels: { color: '#e5e7eb' } }, 
-                datalabels: { display: false } // Вимикаємо за замовчуванням
-            }, 
-            scales: { 
-                x: { grid: { display: false }, ticks: { color: '#9ca3af' } }, 
-                y: { grid: { color: '#374151' }, ticks: { beginAtZero: true, color: '#9ca3af' } } 
-            } 
-        }; 
+    function getChartOptions() {
+        return {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', labels: { color: '#e5e7eb' } },
+                datalabels: { display: false } // Вимкнено за замовчуванням
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#9ca3af' } },
+                y: { grid: { color: '#374151' }, ticks: { beginAtZero: true, color: '#9ca3af' } }
+            }
+        };
     }
-
-    /**
-     * Показує повідомлення "Немає даних" на канвасі
-     */
-    function showNoDataMessage(ctx) {
+    function showEmptyChartMessage(ctx) {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        ctx.save(); 
-        ctx.textAlign = 'center'; 
-        ctx.textBaseline = 'middle'; 
-        ctx.fillStyle = '#9ca3af'; 
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#9ca3af';
         ctx.font = "16px 'Inter', sans-serif";
-        ctx.fillText('Немає даних для відображення', ctx.canvas.width / 2, ctx.canvas.height / 2); 
+        ctx.fillText('Немає даних для відображення', ctx.canvas.width / 2, ctx.canvas.height / 2);
         ctx.restore();
+        return null;
     }
     </script>
 </body>
