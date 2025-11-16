@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
-    
+
     <!-- Стилі -->
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #111827; color: #e5e7eb; }
@@ -51,6 +51,7 @@
 
         <!-- Контент Дашборду (прихований до завантаження) -->
         <div id="dashboardContent" class="hidden">
+
              <!-- Секція Фільтрів -->
             <div class="card mb-8">
                  <h2 class="text-xl font-semibold mb-4 text-white">Фільтри</h2>
@@ -99,9 +100,10 @@
                         <div id="funnel-destroyed" class="funnel-segment"><div class="funnel-segment-content"><div class="funnel-label">Знищено</div><div class="funnel-value" id="funnel-value-destroyed">0</div><div class="funnel-percentage" id="funnel-perc-destroyed">(0%)</div></div></div>
                     </div></div>
                 </div>
+
                 <!-- Відсоткові показники ураження -->
                 <div class="card"><h3 class="text-lg font-semibold mb-4">Відсоткові показники ураження</h3><div class="chart-container"><canvas id="percentageMetricsChart"></canvas></div></div>
-                
+
                 <!-- Показники уражень по дням -->
                 <div class="card lg:col-span-2">
                     <h3 class="text-lg font-semibold mb-4">Показники уражень по дням</h3>
@@ -141,7 +143,12 @@
         },
         // !!! ВАЖЛИВО: ВСТАВТЕ СЮДИ ОПУБЛІКОВАНЕ CSV ПОСИЛАННЯ З GOOGLE SHEETS !!!
         // Переконайтеся, що це посилання на КОНКРЕТНИЙ АРКУШ (sheet_1), а не на "Весь документ"
-        googleSheetCsvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTNATRW_HxGW9zmFcJQR0vKq9eREDXuiTHqq3qyA9RzaiBLmvu-Ww7L7HJMuRHtz8Up3UHT86i-KYnu/pub?gid=652784530&single=true&output=csv' 
+
+        /* Попередній код:
+        googleSheetCsvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTNATRW_HxGW9zmFcJQR0vKq9eREDXuiTHqq3qyA9RzaiBLmvu-Ww7L7HJMuRHtz8Up3UHT86i-KYnu/pub?gid=652784530&single=true&output=csv'
+        */
+        // Новий код: URL оновлено згідно з запитом користувача (gid=1732561156)
+        googleSheetCsvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRXbeoRIWewYglXNmauXQx-xNtTNNokpbaAGmYK_e5ypXEKkouYhU-RFTpUnunG0EDfVG-snnum86vA/pub?gid=1732561156&single=true&output=csv'
     };
 
     // Глобальні налаштування Chart.js
@@ -150,26 +157,25 @@
     Chart.register(ChartDataLabels);
 
     // --- Ініціалізація Дашборду ---
-    
     window.onload = initializeDashboard;
 
     /**
      * Запускає завантаження та парсинг даних при старті.
      */
     async function initializeDashboard() {
-        if (AppState.googleSheetCsvUrl === 'YOUR_GOOGLE_SHEET_CSV_URL_HERE') {
+        if (AppState.googleSheetCsvUrl.includes('YOUR_GOOGLE_SHEET_CSV_URL_HERE')) {
             handleError('Будь ласка, вставте URL Google Sheet CSV у змінну AppState.googleSheetCsvUrl.');
             return;
         }
-        
+
         setLoadingState(true, 'Завантаження даних з Google Sheets...');
         try {
             const rawData = await fetchData(AppState.googleSheetCsvUrl);
             AppState.originalData = parseData(rawData); // Парсимо дані ОДИН раз
-            
+
             populateFilters(AppState.originalData); // Заповнюємо фільтри
             addFilterListeners(); // Додаємо обробники подій
-            
+
             applyFilters(); // Застосовуємо фільтри (вперше)
             setLoadingState(false);
         } catch (error) {
@@ -178,7 +184,6 @@
     }
 
     // --- Обробка Даних та API ---
-
     /**
      * Завантажує CSV дані з Google Sheet.
      */
@@ -202,16 +207,16 @@
     function parseData(csvText) {
         const rows = csvText.trim().split('\n');
         if (rows.length < 2) return [];
-        
+
         const headers = rows[0].split(',').map(h => h.trim());
-        
+
         return rows.slice(1).map(rowStr => {
             const values = rowStr.split(',');
             const row = {};
             headers.forEach((header, index) => {
                 row[header] = values[index] ? values[index].trim() : undefined;
             });
-            
+
             // Додаємо flight_date для зручності фільтрації
             if (row.flight_start_datetime) {
                 try {
@@ -308,7 +313,6 @@
     }
 
     // --- ЛОГІКА АГРЕГАЦІЇ (Перенесено з SQL) ---
-
     /**
      * Приймає відфільтровані рядки та перетворює їх на дані для графіків.
      */
@@ -328,7 +332,7 @@
         const takeoffMap = new Map();
         const targetTypeMap = new Map();
         const sectorMap = new Map();
-        
+
         const uniqueResponseIds = new Set();
 
         filteredData.forEach(row => {
@@ -341,20 +345,19 @@
                     kpis.returned_safe++;
                 }
             }
-            
+
             // Метрики воронки
             if (row.target_detection === 'Візуальний контакт') kpis.visual_contact++;
             if (row.hit_target_attempt === 'Так') kpis.hit_attempts++;
-            
+
             const isDestroyed = row.target_damage_status === 'Знищено' || row.target_damage_status === 'ціль зникла з радару';
             if (isDestroyed) kpis.targets_destroyed++;
-            
+
             if (row.hit_target_attempt === 'Так' && !isDestroyed) {
                 kpis.misses_after_attempt++;
             }
 
             // --- Збір даних для графіків ---
-
             // Графік по днях
             if (row.flight_date) {
                 if (!dailyMap.has(row.flight_date)) dailyMap.set(row.flight_date, { flight_date: row.flight_date, total_launches: 0, targets_destroyed: 0 });
@@ -362,7 +365,7 @@
                 if (isUniqueLaunch) day.total_launches++;
                 if (isDestroyed) day.targets_destroyed++;
             }
-            
+
             // Графік по екіпажах
             if (row.crew) {
                 if (!crewMap.has(row.crew)) crewMap.set(row.crew, { crew: row.crew, total_launches: 0, targets_destroyed: 0 });
@@ -378,9 +381,9 @@
                 if (isUniqueLaunch) point.total_launches++;
                 if (isDestroyed) point.targets_destroyed++;
             }
-            
+
             // Графік по секторах
-             if (row.sector) {
+            if (row.sector) {
                 if (!sectorMap.has(row.sector)) sectorMap.set(row.sector, { sector: row.sector, total_launches: 0, targets_destroyed: 0 });
                 const sector = sectorMap.get(row.sector);
                 if (isUniqueLaunch) sector.total_launches++;
@@ -393,7 +396,7 @@
                 targetTypeMap.get(row.target_type).targets_destroyed++;
             }
         });
-        
+
         kpis.targets_not_destroyed = kpis.total_launches - kpis.targets_destroyed;
 
         // Конвертація Map в масиви та сортування
@@ -406,9 +409,7 @@
         return { kpis, dailyData, crewData, takeoffData, targetTypeData, sectorData };
     }
 
-
     // --- Оновлення UI ---
-
     /**
      * Головна функція оновлення UI. Приймає АГРЕГОВАНІ дані.
      */
@@ -417,15 +418,14 @@
             handleError("Помилка агрегації даних.");
             return;
         }
-
         const kpis = data.kpis;
-        
+
         // Розрахунок KPI
         const detectionRate = kpis.total_launches > 0 ? (kpis.visual_contact / kpis.total_launches) * 100 : 0;
         const hitAttemptRate = kpis.visual_contact > 0 ? (kpis.hit_attempts / kpis.visual_contact) * 100 : 0;
         const killRate = kpis.hit_attempts > 0 ? (kpis.targets_destroyed / kpis.hit_attempts) * 100 : 0;
         const missRate = kpis.hit_attempts > 0 ? (kpis.misses_after_attempt / kpis.hit_attempts) * 100 : 0;
-        
+
         // Відсоткові показники
         const percDetectedFromLaunches = kpis.total_launches > 0 ? (kpis.visual_contact / kpis.total_launches) * 100 : 0;
         const percDestroyedFromAttempts = kpis.hit_attempts > 0 ? (kpis.targets_destroyed / kpis.hit_attempts) * 100 : 0;
@@ -481,13 +481,12 @@
     }
 
     // --- Функції Побудови Графіків (Залишаються без змін, оскільки приймають агреговані дані) ---
-
     /**
      * Оновлює воронку.
      */
     function updateFunnelChart(kpis) {
         const { total_launches, visual_contact, hit_attempts, targets_destroyed } = kpis;
-        
+
         // Розрахунок %
         const percDetected = total_launches > 0 ? (visual_contact / total_launches * 100) : 0;
         const percAttempts = visual_contact > 0 ? (hit_attempts / visual_contact * 100) : 0;
@@ -498,22 +497,22 @@
         document.getElementById('funnel-value-detected').textContent = visual_contact.toLocaleString('uk-UA');
         document.getElementById('funnel-value-attempts').textContent = hit_attempts.toLocaleString('uk-UA');
         document.getElementById('funnel-value-destroyed').textContent = targets_destroyed.toLocaleString('uk-UA');
-        
+
         // Відсотки
         document.getElementById('funnel-perc-detected').textContent = `(${percDetected.toFixed(1)}% від пусків)`;
         document.getElementById('funnel-perc-attempts').textContent = `(${percAttempts.toFixed(1)}% від виявлених)`;
         document.getElementById('funnel-perc-destroyed').textContent = `(${percDestroyed.toFixed(1)}% від спроб)`;
-        
+
         // Ширина сегментів (простий варіант)
         let baseWidth = 100;
         document.getElementById('funnel-launches').style.width = `${baseWidth}%`;
-        
+
         let detectedWidth = total_launches > 0 ? (visual_contact / total_launches) * baseWidth : 0;
         document.getElementById('funnel-detected').style.width = `${Math.max(detectedWidth, 20)}%`; // min width 20%
-        
+
         let attemptsWidth = total_launches > 0 ? (hit_attempts / total_launches) * baseWidth : 0;
         document.getElementById('funnel-attempts').style.width = `${Math.max(attemptsWidth, 20)}%`;
-        
+
         let destroyedWidth = total_launches > 0 ? (targets_destroyed / total_launches) * baseWidth : 0;
         document.getElementById('funnel-destroyed').style.width = `${Math.max(destroyedWidth, 20)}%`;
     }
@@ -539,7 +538,7 @@
             options: getChartOptions({
                 indexAxis: 'y',
                 scales: { x: { max: 100, ticks: { callback: (v) => v + '%' } } },
-                plugins: { 
+                plugins: {
                     datalabels: { display: true, anchor: 'end', align: 'right', color: 'white', font: { weight: 'bold' }, formatter: (v) => `${v.toFixed(1)}%` },
                     legend: { display: false }
                 }
@@ -553,9 +552,9 @@
     function updateDailyDynamicsChart(dailyData) {
         const ctx = document.getElementById('dailyDynamicsChart');
         if (AppState.charts.dailyDynamics) AppState.charts.dailyDynamics.destroy();
-        
+
         const labels = dailyData.map(d => d.flight_date);
-        
+
         AppState.charts.dailyDynamics = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -576,14 +575,14 @@
                 ]
             },
             options: getChartOptions({
-                scales: { 
+                scales: {
                     x: { ticks: { color: '#9ca3af' } },
-                    yLaunches: { 
-                        type: 'linear', 
+                    yLaunches: {
+                        type: 'linear',
                         position: 'left',
                         title: { display: true, text: 'Кількість' },
                         ticks: { color: '#9ca3af' }
-                    } 
+                    }
                 }
             })
         });
@@ -595,7 +594,7 @@
     function updateCrewChart(crewData) {
         const ctx = document.getElementById('crewChart');
         if (AppState.charts.crew) AppState.charts.crew.destroy();
-        
+
         const data = crewData.slice(0, 15); // Тільки Топ 15
 
         AppState.charts.crew = new Chart(ctx, {
@@ -622,7 +621,7 @@
     function updateTakeoffPointChart(takeoffData) {
         const ctx = document.getElementById('takeoffPointChart');
         if (AppState.charts.takeoffPoint) AppState.charts.takeoffPoint.destroy();
-        
+
         const data = takeoffData.slice(0, 15); // Тільки Топ 15
 
         AppState.charts.takeoffPoint = new Chart(ctx, {
@@ -649,7 +648,7 @@
     function updateTargetTypeChart(targetTypeData) {
         const ctx = document.getElementById('targetTypeChart');
         if (AppState.charts.targetType) AppState.charts.targetType.destroy();
-        
+
         const total = targetTypeData.reduce((sum, d) => sum + d.targets_destroyed, 0);
 
         AppState.charts.targetType = new Chart(ctx, {
@@ -671,7 +670,7 @@
     function updateSectorChart(sectorData) {
         const ctx = document.getElementById('sectorChart');
         if (AppState.charts.sector) AppState.charts.sector.destroy();
-        
+
         const totalDestroyed = sectorData.reduce((sum, d) => sum + d.targets_destroyed, 0);
 
         AppState.charts.sector = new Chart(ctx, {
@@ -688,7 +687,6 @@
     }
 
     // --- Хелпери для Графіків ---
-
     /**
      * Повертає базові опції для графіків.
      */
