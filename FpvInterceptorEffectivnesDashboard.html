@@ -51,14 +51,20 @@
              <!-- Filters Section -->
             <div class="card mb-8">
                  <h2 class="text-xl font-semibold mb-4 text-white">Фільтри</h2>
+                 <!-- Оновлена сітка: 8 елементів (6 інпутів, 2 дати), ідеально для 4 колонок -->
                  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
                     <div><label for="dateStart" class="block text-sm font-medium text-gray-300 mb-1">Дата початку</label><input type="date" id="dateStart" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white"></div>
                     <div><label for="dateEnd" class="block text-sm font-medium text-gray-300 mb-1">Дата кінця</label><input type="date" id="dateEnd" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white"></div>
                     <div><label for="sectorFilter" class="block text-sm font-medium text-gray-300 mb-1">Сектор</label><select id="sectorFilter" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white"></select></div>
                     <div><label for="crewFilter" class="block text-sm font-medium text-gray-300 mb-1">Екіпаж</label><select id="crewFilter" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white"></select></div>
+                    
                     <div><label for="takeoffPointFilter" class="block text-sm font-medium text-gray-300 mb-1">Точка злету</label><select id="takeoffPointFilter" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white"></select></div>
                     <div><label for="targetTypeFilter" class="block text-sm font-medium text-gray-300 mb-1">Тип цілі</label><select id="targetTypeFilter" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white"></select></div>
-                    <div class="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-2"><button id="clearFiltersButton" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Очистити фільтри</button></div>
+                    <!-- Новий фільтр -->
+                    <div><label for="droneTypeFilter" class="block text-sm font-medium text-gray-300 mb-1">Тип засобу</label><select id="droneTypeFilter" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white"></select></div>
+                    
+                    <!-- Кнопка тепер займає 1 колонку -->
+                    <div><button id="clearFiltersButton" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Очистити</button></div>
                  </div>
             </div>
 
@@ -183,6 +189,7 @@
             crewFilter: document.getElementById('crewFilter'),
             takeoffPointFilter: document.getElementById('takeoffPointFilter'),
             targetTypeFilter: document.getElementById('targetTypeFilter'),
+            droneTypeFilter: document.getElementById('droneTypeFilter'), // NEW
             clearFiltersButton: document.getElementById('clearFiltersButton'),
         }
     };
@@ -321,6 +328,12 @@
                 const dateParts = fullTimestamp.split(' ');
                 const finalDate = dateParts.length > 1 ? dateParts[0] : fullTimestamp;
                 
+                // Обробка unofficial_drone_type
+                let droneType = row.unofficial_drone_type;
+                if (!droneType || droneType.trim() === '') {
+                    droneType = "Не вказано";
+                }
+
                 return {
                     ...row,
                     date: finalDate, 
@@ -329,13 +342,14 @@
                     sector: row.sector || "Невідомо",
                     crew: row.crew || "Невідомо",
                     takeoff_point: row.takeoff_point || "Невідомо",
+                    unofficial_drone_type: droneType // Додано
                 };
             });
     }
 
     // --- Фільтрація ---
     function populateFilters(data) {
-        const { dateStart, dateEnd, sectorFilter, crewFilter, takeoffPointFilter, targetTypeFilter } = AppState.ui;
+        const { dateStart, dateEnd, sectorFilter, crewFilter, takeoffPointFilter, targetTypeFilter, droneTypeFilter } = AppState.ui;
 
         if (data.length > 0) {
             const dates = data.map(d => d.date).sort();
@@ -360,6 +374,8 @@
         const crews = new Set(data.map(d => d.crew));
         const takeoffPoints = new Set(data.map(d => d.takeoff_point));
         const targetTypes = new Set(data.map(d => d.target_type));
+        // Отримуємо унікальні типи засобів
+        const droneTypes = new Set(data.map(d => d.unofficial_drone_type));
 
         const fixedSectors = ["ДАРКНОД", "Київ", "Південь", "Північ"];
         sectorFilter.innerHTML = `<option value="all">Всі сектори</option>`;
@@ -373,12 +389,13 @@
         populateSelect(crewFilter, crews, 'Всі екіпажі');
         populateSelect(takeoffPointFilter, takeoffPoints, 'Всі точки злету');
         populateSelect(targetTypeFilter, targetTypes, 'Всі типи цілей');
+        populateSelect(droneTypeFilter, droneTypes, 'Всі типи засобів'); // Populate
     }
 
     function addFilterListeners() {
-        const { dateStart, dateEnd, sectorFilter, crewFilter, takeoffPointFilter, targetTypeFilter, clearFiltersButton } = AppState.ui;
+        const { dateStart, dateEnd, sectorFilter, crewFilter, takeoffPointFilter, targetTypeFilter, droneTypeFilter, clearFiltersButton } = AppState.ui;
 
-        [dateStart, dateEnd, sectorFilter, crewFilter, takeoffPointFilter, targetTypeFilter].forEach(el => {
+        [dateStart, dateEnd, sectorFilter, crewFilter, takeoffPointFilter, targetTypeFilter, droneTypeFilter].forEach(el => {
             el.addEventListener('change', applyFilters);
         });
         clearFiltersButton.addEventListener('click', resetFilters);
@@ -391,6 +408,7 @@
         const crewFilter = document.getElementById('crewFilter');
         const takeoffPointFilter = document.getElementById('takeoffPointFilter');
         const targetTypeFilter = document.getElementById('targetTypeFilter');
+        const droneTypeFilter = document.getElementById('droneTypeFilter');
 
         if (AppState.originalData.length > 0) {
             const dates = AppState.originalData.map(d => d.date).sort();
@@ -401,6 +419,7 @@
         crewFilter.value = 'all';
         takeoffPointFilter.value = 'all';
         targetTypeFilter.value = 'all';
+        droneTypeFilter.value = 'all';
 
         applyFilters();
     }
@@ -413,6 +432,7 @@
             crew: document.getElementById('crewFilter').value,
             takeoffPoint: document.getElementById('takeoffPointFilter').value,
             targetType: document.getElementById('targetTypeFilter').value,
+            droneType: document.getElementById('droneTypeFilter').value,
         };
 
         const filteredData = AppState.originalData.filter(row => {
@@ -421,7 +441,8 @@
                    (filters.sector === 'all' || row.sector === filters.sector) &&
                    (filters.crew === 'all' || row.crew === filters.crew) &&
                    (filters.takeoffPoint === 'all' || row.takeoff_point === filters.takeoffPoint) &&
-                   (filters.targetType === 'all' || row.target_type === filters.targetType);
+                   (filters.targetType === 'all' || row.target_type === filters.targetType) &&
+                   (filters.droneType === 'all' || row.unofficial_drone_type === filters.droneType);
         });
 
         updateDashboard(filteredData);
