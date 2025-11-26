@@ -1,1 +1,253 @@
-<!DOCTYPE html><html lang="uk"><head>    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>SOP: Процес верифікації та подання звітності ОЧ</title>    <script src="https://cdn.tailwindcss.com"></script>    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">    <style>        body {            font-family: 'Inter', sans-serif;            background-color: #f3f4f6;        }        .diagram-container {            background-color: white;            border-radius: 12px;            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);            overflow: hidden;        }        .header {            background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%);            color: white;            text-align: center;        }        .mermaid {            display: flex;            justify-content: center;            width: 100%;        }    </style></head><body class="p-4 md:p-8">    <div class="max-w-7xl mx-auto">        <!-- Header -->        <header class="header p-8 rounded-t-xl mb-0 shadow-lg">            <h1 class="text-2xl md:text-3xl font-bold tracking-wide">Процес верифікації та подання звітності ОЧ</h1>        </header>        <!-- Main Content -->        <div class="diagram-container p-8 min-h-[600px] border-t-0 rounded-t-none">                        <!-- Controls / Legend -->            <div class="flex flex-wrap justify-center gap-6 mb-8 text-sm text-gray-600 border-b pb-6">                <div class="flex items-center">                    <span class="w-3 h-3 rounded-full bg-blue-100 border border-blue-500 mr-2 shadow-sm"></span>                    <span>Дії людини</span>                </div>                <div class="flex items-center">                    <span class="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-500 mr-2 shadow-sm"></span>                    <span>Умови / Рішення</span>                </div>                <div class="flex items-center">                    <span class="w-3 h-3 rounded-full bg-purple-100 border border-purple-500 mr-2 shadow-sm"></span>                    <span>Автоматизація (GAS)</span>                </div>                 <div class="flex items-center">                    <span class="w-3 h-3 rounded-full bg-green-100 border border-green-500 mr-2 shadow-sm"></span>                    <span>Артефакт (Звіт/Відео)</span>                </div>            </div>            <!-- Mermaid Diagram -->            <div class="mermaid transform transition-all duration-500">                flowchart TD                    %% ЛЕГЕНДА УЧАСНИКІВ                                        subgraph Pilots                        direction TB                        PilotsTitle["✈️ Етап 1: Пілоти / Екіпажі"]:::groupTitle                        Start((Подія:<br>Завершення<br>місії))                        FillForm[/"📝 1.1 Заповнити форму<br>(Час, Тип, Результат, Координати)"/]                        UploadVideo[/"1.2 Завантажити 'сире' відео<br>на хмарне сховище"/]                                                PilotsTitle --> Start                        Start --> FillForm                        FillForm --> UploadVideo                    end                    subgraph BatOC                        direction TB                        %% Заголовок як вузол, щоб уникнути перетину                        BatTitle["🛡️ Етап 2: ОЧ Батальйону (Верифікація)"]:::groupTitle                                                DeadlineEvent{{"⏱️ Дедлайн:<br>06:00 / 18:00"}}                        OpenPanel["🖥️ 2.1 Відкрити панель<br>верифікації"]                        CheckVideo{"2.2 Перевірка:<br>Відео відповідає<br>результату?"}                        CheckCoords{"Координати<br>коректні?"}                        CorrectData["✏️ Виправлення даних<br>(Статус / Координати)"]                        ClickVerify["✅ 2.3 Натиснути<br>'Верифіковано'"]                                                BatTitle --> DeadlineEvent                        DeadlineEvent --> OpenPanel                        OpenPanel --> CheckVideo                                                CheckVideo -- "Ні" --> CorrectData                        CorrectData --> CheckVideo                                                CheckVideo -- "Так" --> CheckCoords                        CheckCoords -- "Ні" --> CorrectData                        CheckCoords -- "Так" --> ClickVerify                    end                    subgraph BrigOC                        direction TB                        %% Заголовок як вузол                        BrigTitle["🦅 Етап 3: ОЧ Бригади (Зведення)"]:::groupTitle                        TimeTrigger{{"⏱️ Час збору:<br>06:05 / 18:05"}}                        OpenTool["💻 3.1 Відкрити інструмент<br>генерації звітів"]                        SelectPeriod["📅 3.2 Обрати період"]                        CheckStatus{"3.3 Всі звіти<br>верифіковані?"}                        ContactBat["📞 Уточнення у<br>ОЧ Батальйону"]                        GenButton["🔘 3.4 Натиснути<br>'Згенерувати звіт'"]                        BrigTitle --> TimeTrigger                        TimeTrigger --> OpenTool                        OpenTool --> SelectPeriod                        SelectPeriod --> CheckStatus                        CheckStatus -- "Ні" --> ContactBat                        ContactBat --> CheckStatus                        CheckStatus -- "Так" --> GenButton                    end                    subgraph System                        direction TB                        %% Заголовок як вузол                        SysTitle["⚙️ Система (Google Apps Script / Automation)"]:::groupTitle                        CalcStats["🧮 3.5.1 Підрахунок статистики<br>(NEMESIS, FPV, Втрати)"]                        RenameFiles["📂 3.5.2 Перейменування файлів<br>(Тип_Ціль_Результат_Дата.mp4)"]                        GenText["📄 3.5.3 Формування<br>текстового зведення"]                                                SysTitle --> CalcStats                        CalcStats --> RenameFiles                        RenameFiles --> GenText                    end                    subgraph Distribution ["📢 Етап 4: Розсилка та Споживачі"]                        direction TB                        %% Тут залишаємо стандартний заголовок, бо вхідні лінії розподіляються                        SendText[/"💬 4.1 Текст звіту -> <br>Чат Командування"/]                        SendPriorityVideo[/"🎬 4.2 Пріоритетні відео -> <br>Чат Командування"/]                        SendBatChat[/"📨 4.2 Відео та інфо -> <br>Чати Батальйонів"/]                        CommsFile[/"🗂️ Файл з посиланнями -> <br>Відділ комунікацій"/]                                                EndNode(((🏁 Процес<br>завершено)))                        GenText --> SendText                        GenText --> SendPriorityVideo                        GenText --> SendBatChat                        GenText --> CommsFile                                                SendText --> EndNode                        SendPriorityVideo --> EndNode                        SendBatChat --> EndNode                        CommsFile --> EndNode                    end                    %% Зв'язки між етапами (через заголовки-вузли)                    UploadVideo -.-> BatTitle                    ClickVerify -.-> BrigTitle                    GenButton --> SysTitle                    %% Стилізація класів                    classDef human fill:#dbeafe,stroke:#2563eb,stroke-width:2px;                    classDef system fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,stroke-dasharray: 5 5;                    classDef condition fill:#fef9c3,stroke:#eab308,stroke-width:2px,rx:5,ry:5;                    classDef event fill:#fee2e2,stroke:#ef4444,stroke-width:2px;                    classDef artifact fill:#dcfce7,stroke:#22c55e,stroke-width:2px;                                        %% Новий стиль для Заголовків (прозорий, жирний шрифт)                    classDef groupTitle fill:transparent,stroke:none,font-weight:bold,font-size:18px,color:#1e3a8a,margin-bottom:20px;                                        class Start,DeadlineEvent,TimeTrigger,EndNode event;                    class FillForm,UploadVideo,OpenPanel,ClickVerify,OpenTool,SelectPeriod,ContactBat,GenButton human;                    class CheckVideo,CheckCoords,CheckStatus condition;                    class CalcStats,RenameFiles,GenText system;                    class SendText,SendPriorityVideo,SendBatChat,CommsFile artifact;            </div>                        <!-- Process Summary Table -->            <div class="mt-16 border-t pt-8">                <div class="flex items-center justify-center mb-6">                    <h2 class="text-xl font-bold text-gray-800 bg-gray-100 px-4 py-2 rounded-full border">🔑 Ключові метрики процесу</h2>                </div>                <div class="overflow-x-auto shadow-md rounded-lg">                    <table class="min-w-full divide-y divide-gray-200 border text-sm text-center">                        <thead class="bg-blue-50">                            <tr>                                <th class="px-6 py-4 font-bold text-gray-700 uppercase tracking-wider">Етап</th>                                <th class="px-6 py-4 font-bold text-gray-700 uppercase tracking-wider">Відповідальний</th>                                <th class="px-6 py-4 font-bold text-gray-700 uppercase tracking-wider">Критичний Таймінг</th>                                <th class="px-6 py-4 font-bold text-gray-700 uppercase tracking-wider">Результат</th>                            </tr>                        </thead>                        <tbody class="bg-white divide-y divide-gray-200">                            <tr class="hover:bg-gray-50 transition-colors">                                <td class="px-6 py-4 font-semibold text-blue-800">1. Внесення</td>                                <td class="px-6 py-4">Пілоти / Екіпажі</td>                                <td class="px-6 py-4 text-gray-500">Одразу після місії</td>                                <td class="px-6 py-4">Форма + Відео</td>                            </tr>                            <tr class="hover:bg-gray-50 transition-colors">                                <td class="px-6 py-4 font-semibold text-blue-800">2. Верифікація</td>                                <td class="px-6 py-4">ОЧ Батальйону</td>                                <td class="px-6 py-4 text-red-600 font-bold bg-red-50 rounded-lg">06:00 / 18:00</td>                                <td class="px-6 py-4">Верифіковані дані</td>                            </tr>                            <tr class="hover:bg-gray-50 transition-colors">                                <td class="px-6 py-4 font-semibold text-blue-800">3. Генерація</td>                                <td class="px-6 py-4">ОЧ Бригади + Система</td>                                <td class="px-6 py-4">06:05 / 18:05</td>                                <td class="px-6 py-4">Зведений звіт</td>                            </tr>                            <tr class="hover:bg-gray-50 transition-colors">                                <td class="px-6 py-4 font-semibold text-blue-800">4. Публікація</td>                                <td class="px-6 py-4">Система (Авто)</td>                                <td class="px-6 py-4">Миттєво</td>                                <td class="px-6 py-4">Розсилка в чати</td>                            </tr>                        </tbody>                    </table>                </div>            </div>        </div>    </div>    <script>        mermaid.initialize({            startOnLoad: true,            theme: 'base',            flowchart: {                htmlLabels: true,                curve: 'basis',                nodeSpacing: 50,                rankSpacing: 60,                padding: 30            },            themeVariables: {              primaryColor: '#dbeafe',              primaryBorderColor: '#2563eb',              secondaryColor: '#fef9c3',              tertiaryColor: '#fff',              edgeLabelBackground:'#ffffff',              fontFamily: 'Inter',              fontSize: '15px'            }        });    </script></body></html>
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOP: Процес верифікації та подання звітності ОЧ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .diagram-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            text-align: center;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="header p-8 rounded-t-xl mb-0 shadow-lg">
+            <h1 class="text-2xl md:text-3xl font-bold tracking-wide">Процес верифікації та подання звітності ОЧ</h1>
+        </header>
+
+        <!-- Main Content -->
+        <div class="diagram-container p-8 min-h-[600px] border-t-0 rounded-t-none">
+            
+            <!-- Controls / Legend -->
+            <div class="flex flex-wrap justify-center gap-6 mb-8 text-sm text-gray-600 border-b pb-6">
+                <div class="flex items-center">
+                    <span class="w-3 h-3 rounded-full bg-blue-100 border border-blue-500 mr-2 shadow-sm"></span>
+                    <span>Дії людини</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-500 mr-2 shadow-sm"></span>
+                    <span>Умови / Рішення</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="w-3 h-3 rounded-full bg-purple-100 border border-purple-500 mr-2 shadow-sm"></span>
+                    <span>Автоматизація (GAS)</span>
+                </div>
+                 <div class="flex items-center">
+                    <span class="w-3 h-3 rounded-full bg-green-100 border border-green-500 mr-2 shadow-sm"></span>
+                    <span>Артефакт (Звіт/Відео)</span>
+                </div>
+            </div>
+
+            <!-- Mermaid Diagram -->
+            <div class="mermaid transform transition-all duration-500">
+                flowchart TD
+                    %% ЛЕГЕНДА УЧАСНИКІВ
+                    
+                    subgraph Pilots
+                        direction TB
+                        PilotsTitle["✈️ Етап 1: Пілоти / Екіпажі"]:::groupTitle
+                        Start((Подія:<br>Завершення<br>місії))
+                        FillForm[/"📝 1.1 Заповнити форму<br>(Час, Тип, Результат, Координати)"/]
+                        UploadVideo[/"1.2 Завантажити 'сире' відео<br>на хмарне сховище"/]
+                        
+                        PilotsTitle --> Start
+                        Start --> FillForm
+                        FillForm --> UploadVideo
+                    end
+
+                    subgraph BatOC
+                        direction TB
+                        %% Заголовок як вузол, щоб уникнути перетину
+                        BatTitle["🛡️ Етап 2: ОЧ Батальйону (Верифікація)"]:::groupTitle
+                        
+                        DeadlineEvent{{"⏱️ Дедлайн:<br>06:00 / 18:00"}}
+                        OpenPanel["🖥️ 2.1 Відкрити панель<br>верифікації"]
+                        CheckVideo{"2.2 Перевірка:<br>Відео відповідає<br>результату?"}
+                        CheckCoords{"Координати<br>коректні?"}
+                        CorrectData["✏️ Виправлення даних<br>(Статус / Координати)"]
+                        ClickVerify["✅ 2.3 Натиснути<br>'Верифіковано'"]
+                        
+                        BatTitle --> DeadlineEvent
+                        DeadlineEvent --> OpenPanel
+                        OpenPanel --> CheckVideo
+                        
+                        CheckVideo -- "Ні" --> CorrectData
+                        CorrectData --> CheckVideo
+                        
+                        CheckVideo -- "Так" --> CheckCoords
+                        CheckCoords -- "Ні" --> CorrectData
+                        CheckCoords -- "Так" --> ClickVerify
+                    end
+
+                    subgraph BrigOC
+                        direction TB
+                        %% Заголовок як вузол
+                        BrigTitle["🦅 Етап 3: ОЧ Бригади (Зведення)"]:::groupTitle
+
+                        TimeTrigger{{"⏱️ Час збору:<br>06:05 / 18:05"}}
+                        OpenTool["💻 3.1 Відкрити інструмент<br>генерації звітів"]
+                        SelectPeriod["📅 3.2 Обрати період"]
+                        CheckStatus{"3.3 Всі звіти<br>верифіковані?"}
+                        ContactBat["📞 Уточнення у<br>ОЧ Батальйону"]
+                        GenButton["🔘 3.4 Натиснути<br>'Згенерувати звіт'"]
+
+                        BrigTitle --> TimeTrigger
+                        TimeTrigger --> OpenTool
+                        OpenTool --> SelectPeriod
+                        SelectPeriod --> CheckStatus
+                        CheckStatus -- "Ні" --> ContactBat
+                        ContactBat --> CheckStatus
+                        CheckStatus -- "Так" --> GenButton
+                    end
+
+                    subgraph System
+                        direction TB
+                        %% Заголовок як вузол
+                        SysTitle["⚙️ Система (Google Apps Script / Automation)"]:::groupTitle
+
+                        CalcStats["🧮 3.5.1 Підрахунок статистики<br>(NEMESIS, FPV, Перехоплювачі)"]
+                        RenameFiles["📂 3.5.2 Перейменування файлів<br>(Тип_Ціль_Результат_Дата.mp4)"]
+                        GenText["📄 3.5.3 Формування<br>текстового зведення"]
+                        
+                        SysTitle --> CalcStats
+                        CalcStats --> RenameFiles
+                        RenameFiles --> GenText
+                    end
+
+                    subgraph Distribution ["📢 Етап 4: Розсилка та Споживачі"]
+                        direction TB
+                        %% Тут залишаємо стандартний заголовок, бо вхідні лінії розподіляються
+                        SendText[/"💬 4.1 Текст звіту -> <br>Чат Командування"/]
+                        SendPriorityVideo[/"🎬 4.2 Пріоритетні відео -> <br>Чат Командування"/]
+                        SendBatChat[/"📨 4.2 Відео та інфо -> <br>Чати Батальйонів"/]
+                        CommsFile[/"🗂️ Файл з посиланнями -> <br>Відділ комунікацій"/]
+                        
+                        EndNode(((🏁 Процес<br>завершено)))
+
+                        GenText --> SendText
+                        GenText --> SendPriorityVideo
+                        GenText --> SendBatChat
+                        GenText --> CommsFile
+                        
+                        SendText --> EndNode
+                        SendPriorityVideo --> EndNode
+                        SendBatChat --> EndNode
+                        CommsFile --> EndNode
+                    end
+
+                    %% Зв'язки між етапами (через заголовки-вузли)
+                    UploadVideo -.-> BatTitle
+                    ClickVerify -.-> BrigTitle
+                    GenButton --> SysTitle
+
+                    %% Стилізація класів
+                    classDef human fill:#dbeafe,stroke:#2563eb,stroke-width:2px;
+                    classDef system fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,stroke-dasharray: 5 5;
+                    classDef condition fill:#fef9c3,stroke:#eab308,stroke-width:2px,rx:5,ry:5;
+                    classDef event fill:#fee2e2,stroke:#ef4444,stroke-width:2px;
+                    classDef artifact fill:#dcfce7,stroke:#22c55e,stroke-width:2px;
+                    
+                    %% Новий стиль для Заголовків (прозорий, жирний шрифт)
+                    classDef groupTitle fill:transparent,stroke:none,font-weight:bold,font-size:18px,color:#1e3a8a,margin-bottom:20px;
+                    
+                    class Start,DeadlineEvent,TimeTrigger,EndNode event;
+                    class FillForm,UploadVideo,OpenPanel,ClickVerify,OpenTool,SelectPeriod,ContactBat,GenButton human;
+                    class CheckVideo,CheckCoords,CheckStatus condition;
+                    class CalcStats,RenameFiles,GenText system;
+                    class SendText,SendPriorityVideo,SendBatChat,CommsFile artifact;
+            </div>
+            
+            <!-- Process Summary Table -->
+            <div class="mt-16 border-t pt-8">
+                <div class="flex items-center justify-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 bg-gray-100 px-4 py-2 rounded-full border">🔑 Ключові метрики процесу</h2>
+                </div>
+                <div class="overflow-x-auto shadow-md rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-200 border text-sm text-center">
+                        <thead class="bg-blue-50">
+                            <tr>
+                                <th class="px-6 py-4 font-bold text-gray-700 uppercase tracking-wider">Етап</th>
+                                <th class="px-6 py-4 font-bold text-gray-700 uppercase tracking-wider">Відповідальний</th>
+                                <th class="px-6 py-4 font-bold text-gray-700 uppercase tracking-wider">Критичний Таймінг</th>
+                                <th class="px-6 py-4 font-bold text-gray-700 uppercase tracking-wider">Результат</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 font-semibold text-blue-800">1. Внесення</td>
+                                <td class="px-6 py-4">Пілоти / Екіпажі</td>
+                                <td class="px-6 py-4 text-gray-500">Одразу після місії</td>
+                                <td class="px-6 py-4">Форма + Відео</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 font-semibold text-blue-800">2. Верифікація</td>
+                                <td class="px-6 py-4">ОЧ Батальйону</td>
+                                <td class="px-6 py-4 text-red-600 font-bold bg-red-50 rounded-lg">06:00 / 18:00</td>
+                                <td class="px-6 py-4">Верифіковані дані</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 font-semibold text-blue-800">3. Генерація</td>
+                                <td class="px-6 py-4">ОЧ Бригади + Система</td>
+                                <td class="px-6 py-4">06:05 / 18:05</td>
+                                <td class="px-6 py-4">Зведений звіт</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 font-semibold text-blue-800">4. Публікація</td>
+                                <td class="px-6 py-4">Система (Авто)</td>
+                                <td class="px-6 py-4">Миттєво</td>
+                                <td class="px-6 py-4">Розсилка в чати</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            flowchart: {
+                htmlLabels: true,
+                curve: 'basis',
+                nodeSpacing: 50,
+                rankSpacing: 60,
+                padding: 30
+            },
+            themeVariables: {
+              primaryColor: '#dbeafe',
+              primaryBorderColor: '#2563eb',
+              secondaryColor: '#fef9c3',
+              tertiaryColor: '#fff',
+              edgeLabelBackground:'#ffffff',
+              fontFamily: 'Inter',
+              fontSize: '15px'
+            }
+        });
+    </script>
+</body>
+</html>
